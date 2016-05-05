@@ -47,8 +47,9 @@ def download_movies_from_page(level, init, number):
             with open(file_name) as f:
                 movie_json = json.load(f)
             time_format = '%Y-%m-%d %H:%M:%S'
-            if (strptime(current_time(), time_format) - strptime(movie_json['last_crawled'],
-                                                                 time_format)).seconds > 10800:
+            second_gap = (
+            strptime(current_time(), time_format) - strptime(movie_json['last_crawled'], time_format)).seconds
+            if 10800 < second_gap < 12960000:
                 fetch = True
         else:
             fetch = True
