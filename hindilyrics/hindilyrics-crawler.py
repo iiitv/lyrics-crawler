@@ -1,18 +1,25 @@
+import json
 import math
 import string
 import sys
 from datetime import datetime
 from os import path, mkdir
+from re import findall
 from threading import Thread
-from time import time
+from time import time, strptime
 from urllib import request
 
 usage = "python hindilyrics-crawler <crawl type - full/incr> <destination>"
 start_address = 'http://www.hindilyrics.net'
+location = ''
+
+
+def current_time():
+    return datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H:%M:%S')
 
 
 def print_info(level, message):
-    message = '(' + datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H:%M:%S') + ') INFO: ' + message
+    message = '(' + current_time() + ') INFO: ' + message
     for i in range(0, level):
         message = '\t' + message
     print(message)
@@ -23,15 +30,32 @@ def download_movie(url):
 
 
 def download_movies_from_page(level, init, number):
-    global start_address
+    global start_address, location
     print_info(level, 'Started thread for downloading movies starting with {0} page {1}'.format(init, number))
 
     website = start_address + '/lyrics/hindi-songs-starting-{0}-page-{1}.html'.format(init, number)
     raw_html = str(request.urlopen(website).read())
 
+    movies_list_with_url = findall(r'\<li\>.*?\"(.*?)\"\>(.*?)\<', raw_html)
 
+    for url, movie in movies_list_with_url:
+        file_name = location + '{0}.json'.format(init)
 
-    pass
+        fetch = False
+
+        if path.exists(file_name):
+            with open(file_name) as f:
+                movie_json = json.load(f)
+            time_format = '%Y-%m-%d %H:%M:%S'
+            if (strptime(current_time(), time_format) - strptime(movie_json['last_crawled'],
+                                                                 time_format)).seconds > 10800:
+                fetch = True
+        else:
+            fetch = True
+
+        if fetch:
+            thread_for_movie = Thread(target=download_movie, args=(url, movie))
+            thread_for_movie.start()
 
 
 def initial(level, init):
@@ -72,6 +96,7 @@ def incremental_crawl():
 
 
 def main():
+    global location
     if len(sys.argv) != 3:
         print(usage)
         raise ValueError('Expected {0} arguments recieved {1}.'.format(3, len(sys.argv)))
@@ -81,8 +106,11 @@ def main():
     if crawl_type not in ('full', 'incr'):
         raise ValueError('Invalid crawl type')
 
-    if not path.isdir(sys.argv[2]):
-        mkdir(sys.argv[2])
+    location = sys.argv[2]
+    if location[-1] != '/':
+        location += '/'
+    if not path.isdir(location):
+        mkdir(location)
 
     if crawl_type.matches('full'):
         full_crawl(0)
