@@ -206,8 +206,8 @@ def initial(thread_id, init):
                           '1}'.format(thread_id, website))
 
     number_of_pages = ceil(number_of_movies / 90.0)  # They keep 90 per page
-    print_info('Found {0} movies starting with {1} - {2} pages'.format(
-        number_of_movies, init, number_of_pages))
+    print_info('{3} : Found {0} movies starting with {1} - {2} pages'.format(
+        number_of_movies, init, number_of_pages, thread_id))
 
     for i in range(1, number_of_pages + 1):
         download_movies_from_page(thread_id, init, i)
