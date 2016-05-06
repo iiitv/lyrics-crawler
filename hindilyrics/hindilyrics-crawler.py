@@ -1,3 +1,8 @@
+"""
+Not going to work, too many threads for sockets!!!
+Has to be done in more systematic manner - creating queues and allowing 4 at a time
+"""
+
 # TODO - Add connection error handling
 # TODO - Add keyboard interrupt management
 
