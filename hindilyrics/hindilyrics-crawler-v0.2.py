@@ -10,6 +10,8 @@ from math import ceil
 from os import path, mkdir
 from queue import Queue
 from re import findall, DOTALL
+from string import ascii_lowercase
+from threading import Thread
 from time import strptime
 from urllib import request
 
@@ -24,7 +26,7 @@ USAGE = 'python hindilyrics-crawler-v0.2.py -t <type of crawl DEFAULT : full>' \
         ' ./>'
 
 
-def download_movie(init, url, movie):
+def download_movie(thread_id, init, url, movie):
     global location, start_address
 
     website = start_address + url
@@ -129,7 +131,7 @@ def download_movie(init, url, movie):
         json.dump(movie_json, f)
 
 
-def download_movies_from_page(init, number):
+def download_movies_from_page(thread_id, init, number):
     global start_address, location
 
     website = start_address + '/lyrics/hindi-songs-starting-{0}-page-{1}.html' \
@@ -163,10 +165,10 @@ def download_movies_from_page(init, number):
             fetch = True
 
         if fetch:
-            download_movie(init, url, movie)
+            download_movie(thread_id, init, url, movie)
 
 
-def initial(init):
+def initial(thread_id, init):
     global start_address
 
     website = start_address + '/lyrics/hindi-songs-starting-{0}-page-1.html' \
@@ -178,25 +180,31 @@ def initial(init):
     if not path.isdir(path_init):  # If folder doesn't exists
         mkdir(path_init)  # Make it exist
 
-    if initial != '0':  # If not zero, it will be at this position
-        number_of_movies = raw_html[2343:].split(" ", 1)[0]
-    else:  # Else count list elements, buggy site
-        number_of_movies = raw_html.count('<li>')
+    done = False
+    while not done:
+        if initial != '0':  # If not zero, it will be at this position
+            number_of_movies = raw_html[2343:].split(" ", 1)[0]
+        else:  # Else count list elements, buggy site
+            number_of_movies = raw_html.count('<li>')
 
-    number_of_movies = int(number_of_movies)
+        try:
+            number_of_movies = int(number_of_movies)
+            done = True
+        except ValueError:
+            continue
     print_info('Found {0} movies starting with {1}.'.format(number_of_movies,
                                                             init))
 
     number_of_pages = ceil(number_of_movies / 90.0)  # They keep 90 per page
 
     for i in range(1, number_of_pages + 1):
-        download_movies_from_page(init, i)
+        download_movies_from_page(thread_id, init, i)
 
 
-def threader():
+def threader_full(thread_id):
     while not task_queue.empty():
         init = task_queue.get()  # Take out something from the queue
-        initial(init)
+        initial(thread_id, init)
 
 
 def process_arguments(arguments):
@@ -222,6 +230,7 @@ def process_arguments(arguments):
     location = './'
     crawl_type = 'full'
     for opt, arg in opts:
+        print(opt, arg)
         if opt in ('-t', '--type'):
             if arg not in ('full', 'incr'):
                 print_warning('Crawl type not recognized, using default')
@@ -237,6 +246,37 @@ def process_arguments(arguments):
     return number_of_threads, crawl_type
 
 
+def full_crawl(number_of_threads):
+    for i in ['0', ] + list(ascii_lowercase[:]):
+        task_queue.put(i)
+
+    thread_dict = {}
+    for i in range(0, number_of_threads):
+        temp_thread = Thread(target=threader_full, args=(i,))
+        thread_dict.update(
+            {
+                i: temp_thread
+            }
+        )
+        temp_thread.start()
+
+    for i in range(0, number_of_threads):
+        thread_dict[i].join()
+
+
+def incremental_crawl(number_of_threads):
+    pass
+
+
 def main():
     import sys
-    process_arguments(sys.argv[1:])
+    number_of_threads, crawl_type = process_arguments(sys.argv[1:])
+
+    if crawl_type == 'full':
+        full_crawl(number_of_threads)
+    else:
+        incremental_crawl(number_of_threads)
+
+
+if __name__ == "__main__":
+    main()
