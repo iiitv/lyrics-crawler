@@ -127,7 +127,7 @@ def download_movie(thread_id, init, url, movie):
     movie_json['last_crawled'] = current_time()
 
     filename = location + '{0}/'.format(init) + movie + '.json'
-    with open(filename, 'wb') as f:
+    with open(filename, 'w', encoding='utf8') as f:
         json.dump(movie_json, f)
 
 
@@ -150,7 +150,7 @@ def download_movies_from_page(thread_id, init, number):
         fetch = False
 
         if path.exists(file_name):  # If file is there
-            with open(file_name) as f:
+            with open(file_name, 'r', encoding='utf8') as f:
                 movie_json = json.load(f)
             time_format = '%Y-%m-%d %H:%M:%S'
             # How many seconds before was it crawled
