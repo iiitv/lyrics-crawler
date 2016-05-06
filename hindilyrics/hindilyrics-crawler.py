@@ -9,6 +9,7 @@ from datetime import datetime
 from os import path, mkdir
 from re import findall, DOTALL
 from threading import Thread
+from time import sleep
 from time import time, strptime
 from urllib import request
 
@@ -29,6 +30,7 @@ def print_info(level, message):  # Information printing utility
 
 
 def download_movie(level, init, url, movie):
+    sleep(0.001)
     global location, start_address
 
     print_info(level, 'Started thread for downloading movie {0}.'.format(movie))
@@ -130,6 +132,7 @@ def download_movie(level, init, url, movie):
 
 
 def download_movies_from_page(level, init, number):
+    sleep(0.001)
     global start_address, location
     print_info(level, 'Started thread for downloading movies starting with {0} page {1}'.format(init, number))
 
@@ -162,6 +165,7 @@ def download_movies_from_page(level, init, number):
 
 
 def initial(level, init):
+    sleep(0.001)
     global start_address
     print_info(level, 'Started thread for downloading metadata for movies starting with {0}'.format(init))
     website = start_address + '/lyrics/hindi-songs-starting-{0}-page-1.html'.format(init)
@@ -177,6 +181,7 @@ def initial(level, init):
     else:  # Else count list elements, buggy site
         number_of_movies = raw_html.count('<li>')
 
+    number_of_movies = int(number_of_movies)
     print_info(level, 'Found {0} movies starting with {1}.'.format(number_of_movies, init))
 
     number_of_pages = math.ceil(number_of_movies / 90.0)  # They keep 90 per page
@@ -188,7 +193,8 @@ def initial(level, init):
 
 
 def full_crawl(level=0):
-    initials = ['0'] + string.ascii_lowercase  # All lowercase things
+    sleep(0.001)
+    initials = ['0', ] + list(string.ascii_lowercase[:])  # All lowercase things
 
     while True:  # Forever (until user preempts)
         print_info(level, 'Starting full crawl')
@@ -226,7 +232,7 @@ def main():
     if not path.isdir(location):
         mkdir(location)
 
-    if crawl_type.matches('full'):
+    if crawl_type == 'full':
         full_crawl(0)  # Look for all pages repeatedly, needed only at first go
     else:
         incremental_crawl()  # Look only fir the updated songs / New albums
