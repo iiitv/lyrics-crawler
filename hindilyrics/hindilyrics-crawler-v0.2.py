@@ -214,6 +214,7 @@ def threader_full(thread_id):
     while not task_queue.empty():
         init = task_queue.get()  # Take out something from the queue
         initial(thread_id, init)
+    print_info('{0} : Done')
 
 
 def process_arguments(arguments):
