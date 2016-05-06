@@ -1,8 +1,5 @@
-"""
-{
-    'initial' : xx
-}
-"""
+# TODO - Handle Keyboard Interrupts
+# TODO - Handle connection problems
 
 import json
 from getopt import getopt, GetoptError
@@ -273,6 +270,8 @@ def full_crawl(number_of_threads):
 
     for i in range(0, number_of_threads):
         thread_dict[i].join()
+
+    print_info('Finished full crawl')
 
 
 def incremental_crawl(number_of_threads):
