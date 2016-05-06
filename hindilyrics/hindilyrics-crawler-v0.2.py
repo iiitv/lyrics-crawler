@@ -161,9 +161,12 @@ def download_movies_from_page(thread_id, init, number):
             time_format = '%Y-%m-%d %H:%M:%S'
             # How many seconds before was it crawled
             # TODO - Correct this thing
-            second_gap = (strptime(current_time(), time_format) -
-                          strptime(movie_json['last_crawled'],
-                                   time_format)).seconds
+            try:  # Temporary - not to stop threads
+                second_gap = (strptime(current_time(), time_format) -
+                              strptime(movie_json['last_crawled'],
+                                       time_format)).seconds
+            except TypeError:
+                continue
             # 3 hrs < gap < 5 months - Cuz if its older, they won't update
             # (probably)
             print_info('{0} : File {1} exists - Last crawled {2} '
