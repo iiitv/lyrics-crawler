@@ -183,15 +183,13 @@ def initial(thread_id, init):
         .format(init)
 
     print_info('{0} : Getting info for initial {1}'.format(thread_id, init))
-    raw_html = str(request.urlopen(website).read())
-
     path_init = location + init
     if not path.isdir(path_init):  # If folder doesn't exists
         mkdir(path_init)  # Make it exist
-
     done = False
     while not done:
-        if initial != '0':  # If not zero, it will be at this position
+        raw_html = str(request.urlopen(website).read())
+        if init != '0':  # If not zero, it will be at this position
             number_of_movies = raw_html[2343:].split(" ", 1)[0]
         else:  # Else count list elements, buggy site
             number_of_movies = raw_html.count('<li>')
@@ -200,7 +198,8 @@ def initial(thread_id, init):
             number_of_movies = int(number_of_movies)
             done = True
         except ValueError:
-            continue
+            print_warning('{0} : Problem getting number of songs from {'
+                          '1}'.format(thread_id, website))
 
     number_of_pages = ceil(number_of_movies / 90.0)  # They keep 90 per page
     print_info('Found {0} movies starting with {1} - {2} pages'.format(
