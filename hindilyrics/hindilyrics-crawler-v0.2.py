@@ -160,6 +160,7 @@ def download_movies_from_page(thread_id, init, number):
                 movie_json = json.load(f)
             time_format = '%Y-%m-%d %H:%M:%S'
             # How many seconds before was it crawled
+            # TODO - Correct this thing
             second_gap = (strptime(current_time(), time_format) -
                           strptime(movie_json['last_crawled'],
                                    time_format)).seconds
