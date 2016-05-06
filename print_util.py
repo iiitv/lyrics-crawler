@@ -19,3 +19,8 @@ def print_error(message):
 def print_warning(message):
     message = '(' + current_time() + ') WAR: ' + message
     print(message)
+
+
+def print_usage(message):
+    message = '(' + current_time() + ') USG: ' + message
+    print(message)

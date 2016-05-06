@@ -5,6 +5,7 @@
 """
 
 import json
+from getopt import getopt, GetoptError
 from math import ceil
 from os import path, mkdir
 from queue import Queue
@@ -12,11 +13,15 @@ from re import findall, DOTALL
 from time import strptime
 from urllib import request
 
-from print_util import print_info, current_time
+from print_util import print_info, current_time, print_error, print_usage, \
+    print_warning
 
 task_queue = Queue()  # She will do all the magic
 location = ''
 start_address = 'http://www.hindilyrics.net'
+USAGE = 'python hindilyrics-crawler-v0.2.py -t <type of crawl DEFAULT : full>' \
+        ' -n <number of threads DEFAULT : 4> -o <output destination DEFAULT :' \
+        ' ./>'
 
 
 def download_movie(init, url, movie):
@@ -192,3 +197,45 @@ def threader():
     while not task_queue.empty():
         init = task_queue.get()  # Take out something from the queue
         initial(init)
+
+
+def process_arguments(arguments):
+    global USAGE, location
+
+    try:
+        opts, args = getopt(
+            arguments,
+            't:n:o:',
+            [
+                'type=',
+                'number-of-threads=',
+                'output-location='
+            ]
+        )
+    except GetoptError:
+        print_error('Invalid arguments')
+        print_usage(USAGE)
+        import sys
+        sys.exit()
+
+    number_of_threads = 4
+    location = './'
+    for opt, arg in opts:
+        if opt in ('-t', '--type'):
+            if arg not in ('full', 'incr'):
+                print_warning('Crawl type not recognized, using default')
+            else:
+                crawl_type = arg
+        elif opt in ('-n', '--number-of-threads'):
+            number_of_threads = int(arg)
+        elif opt in ('-o', '--output-location'):
+            if arg[-1] != '/':
+                arg += '/'
+            location = arg
+
+    return number_of_threads, crawl_type
+
+
+def main():
+    import sys
+    process_arguments(sys.argv[1:])
