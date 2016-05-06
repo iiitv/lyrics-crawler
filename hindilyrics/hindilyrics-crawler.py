@@ -1,3 +1,6 @@
+# TODO - Add connection error handling
+# TODO - Add keyboard interrupt management
+
 import json
 import math
 import string
@@ -122,6 +125,8 @@ def download_movie(level, init, url, movie):
     movie_json['last_crawled'] = current_time()
 
     filename = location + movie + '.json'
+    with open(filename, 'wb') as f:
+        json.dump(movie_json, f)
 
 
 def download_movies_from_page(level, init, number):
