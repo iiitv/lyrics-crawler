@@ -30,6 +30,10 @@ def download_movie(thread_id, init, url, movie):
     global location, start_address
 
     website = start_address + url
+    print_info(
+        '{0} : Downloading webpage for movie {1} - {2}'.format(thread_id,
+                                                               movie, website)
+    )
     raw_html = str(request.urlopen(website).read())
 
     movie_json = {
@@ -48,6 +52,8 @@ def download_movie(thread_id, init, url, movie):
         }
 
         website_ = start_address + url_
+        print_info('{0} : Downloading webpage for song {1} -> {2} - {'
+                   '3}'.format(thread_id, movie, song, website_))
         raw_html_ = str(request.urlopen(website_).read())
 
         # Get singers and all
@@ -127,6 +133,7 @@ def download_movie(thread_id, init, url, movie):
     movie_json['last_crawled'] = current_time()
 
     filename = location + '{0}/'.format(init) + movie + '.json'
+    print_info('{0} : Saving movie data in {1}'.format(thread_id, filename))
     with open(filename, 'w', encoding='utf8') as f:
         json.dump(movie_json, f)
 
@@ -136,6 +143,8 @@ def download_movies_from_page(thread_id, init, number):
 
     website = start_address + '/lyrics/hindi-songs-starting-{0}-page-{1}.html' \
         .format(init, number)
+    print_info('{0} : Downloading webpage for initial {1} page {2} - {'
+               '3}'.format(thread_id, init, number, website))
     raw_html = str(request.urlopen(website).read())
 
     # Fetch movies and their URL
@@ -159,6 +168,8 @@ def download_movies_from_page(thread_id, init, number):
                                    time_format)).seconds
             # 3 hrs < gap < 5 months - Cuz if its older, they won't update
             # (probably)
+            print_info('{0} : File {1} exists - Last crawled {2} '
+                       'seconds ago'.format(thread_id, file_name, second_gap))
             if 10800 < second_gap < 12960000:
                 fetch = True
         else:  # Never heard of it, let's go
@@ -174,6 +185,7 @@ def initial(thread_id, init):
     website = start_address + '/lyrics/hindi-songs-starting-{0}-page-1.html' \
         .format(init)
 
+    print_info('{0} : Getting info for initial {1}'.format(thread_id, init))
     raw_html = str(request.urlopen(website).read())
 
     path_init = location + init
@@ -192,10 +204,10 @@ def initial(thread_id, init):
             done = True
         except ValueError:
             continue
-    print_info('Found {0} movies starting with {1}.'.format(number_of_movies,
-                                                            init))
 
     number_of_pages = ceil(number_of_movies / 90.0)  # They keep 90 per page
+    print_info('Found {0} movies starting with {1} - {2} pages'.format(
+        number_of_movies, init, number_of_pages))
 
     for i in range(1, number_of_pages + 1):
         download_movies_from_page(thread_id, init, i)
