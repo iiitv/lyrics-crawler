@@ -220,6 +220,7 @@ def process_arguments(arguments):
 
     number_of_threads = 4
     location = './'
+    crawl_type = 'full'
     for opt, arg in opts:
         if opt in ('-t', '--type'):
             if arg not in ('full', 'incr'):
