@@ -242,7 +242,6 @@ def process_arguments(arguments):
     location = './'
     crawl_type = 'full'
     for opt, arg in opts:
-        print(opt, arg)
         if opt in ('-t', '--type'):
             if arg not in ('full', 'incr'):
                 print_warning('Crawl type not recognized, using default')
