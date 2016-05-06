@@ -98,7 +98,7 @@ def download_movie(init, url, movie):
             for lyricist in lyricists:
                 if lyricist.count('<a') != 0:
                     lyricist_url, lyricist_name = \
-                        findall(r'\<a.*?\"(.*?)\"\>(.*?)\<', lyricist)[0]
+                        findall(r'<a.*?\"(.*?)\">(.*?)<', lyricist)[0]
                 else:
                     lyricist_url = ''
                     lyricist_name = lyricist
@@ -110,7 +110,7 @@ def download_movie(init, url, movie):
                 lyricist_list.append(lyricist_dict)
         song_json['lyricists'] = lyricist_list
 
-        lyrics = findall(r'\<font face="verdana\"\>(.*?)\</font', raw_html_,
+        lyrics = findall(r'<font face="verdana\">(.*?)</font', raw_html_,
                          DOTALL)  # Finally!!
         song_json['lyrics'] = lyrics
 
@@ -132,7 +132,7 @@ def download_movies_from_page(init, number):
     raw_html = str(request.urlopen(website).read())
 
     # Fetch movies and their URL
-    movies_list_with_url = findall(r'\<li\>.*?\"(.*?)\"\>(.*?)\<', raw_html)
+    movies_list_with_url = findall(r'<li>.*?\"(.*?)\">(.*?)<', raw_html)
 
     for url, movie in movies_list_with_url:
 
