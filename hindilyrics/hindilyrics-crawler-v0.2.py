@@ -8,7 +8,7 @@ from queue import Queue
 from re import findall, DOTALL
 from string import ascii_lowercase
 from threading import Thread
-from time import strptime
+from time import strptime, sleep
 from urllib import request
 
 from print_util import print_info, current_time, print_error, print_usage, \
@@ -308,9 +308,74 @@ def full_crawl(number_of_threads):
     print_info('Finished full crawl')
 
 
+def threader_incr(thread_id):
+    while not task_queue.empty():
+        init, url, movie = task_queue.get()
+
+        movie = movie.replace('/', '_').replace('-', '_').replace(':', '_')
+        download_movie(thread_id, init, url, movie)
+
+
 def incremental_crawl(number_of_threads):
-    # TODO - Implement this, update data from homepage only
-    pass
+    global start_address
+
+    while True:
+        print_info('Crawling homepage for new songs')
+        # Get home page
+        website = start_address + '/'
+        done = False
+        raw_html = ''
+        while not done:
+            try:
+                raw_html = str(request.urlopen(website).read())
+                done = True
+            except Exception:
+                print_error('Error occurred, retrying')
+
+        area_of_concern = findall(
+            r'<ul id=\\\'new_thumb\\\' class=\"square\">(.*)</ul>',
+            raw_html,
+            DOTALL
+        )
+
+        if len(area_of_concern) > 0:
+            area_of_concern = area_of_concern[0]
+        else:
+            print_warning('Page not downloaded properly, retring')
+            done = False
+            continue
+
+        movies_with_url = findall(
+            r'<li><a href=\\\'(.*?)\\\' title=\\\'(.*?)\\\'>',
+            area_of_concern,
+            DOTALL
+        )
+
+        for url, movie in movies_with_url:
+            init = movie[0].lower()
+            if init not in list(ascii_lowercase):
+                init = '0'
+
+            dir_loc = location + init
+            if not path.isdir(dir_loc):
+                mkdir(dir_loc)
+            task_queue.put((init, url, movie))
+
+        thread_dict = {}
+        for i in range(0, number_of_threads):
+            temp_thread = Thread(target=threader_incr, args=(i,))
+            thread_dict.update(
+                {
+                    i: temp_thread
+                }
+            )
+            temp_thread.start()
+
+        for i in range(0, number_of_threads):
+            thread_dict[i].join()
+
+        print_info('One round complete, sleeping for 30 minutes')
+        sleep(60 * 30)
 
 
 def main():
