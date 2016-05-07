@@ -243,7 +243,7 @@ def threader_full(thread_id):
     while not task_queue.empty():
         init = task_queue.get()  # Take out something from the queue
         initial(thread_id, init)
-    print_info('{0} : Done')
+    print_info('{0} : Done'.format(thread_id))
 
 
 def process_arguments(arguments):
@@ -374,7 +374,7 @@ def incremental_crawl(number_of_threads):
         for i in range(0, number_of_threads):
             thread_dict[i].join()
 
-        print_info('One round complete, sleeping for 30 minutes')
+        print_info('Round complete, sleeping for 30 minutes')
         sleep(60 * 30)
 
 
