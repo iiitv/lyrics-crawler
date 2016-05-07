@@ -203,6 +203,9 @@ def download_movies_from_page(thread_id, init, number):
 def initial(thread_id, init):
     global start_address
 
+    if init == 'x':
+        return
+
     website = start_address + '/lyrics/hindi-songs-starting-{0}-page-1.html' \
         .format(init)
 
