@@ -1,5 +1,4 @@
 # TODO - Handle Keyboard Interrupts
-# TODO - Handle connection problems
 
 import json
 from getopt import getopt, GetoptError
@@ -14,6 +13,7 @@ from urllib import request
 
 from print_util import print_info, current_time, print_error, print_usage, \
     print_warning
+from requests import RequestException
 
 task_queue = Queue()  # She will do all the magic
 location = ''
@@ -31,7 +31,14 @@ def download_movie(thread_id, init, url, movie):
         '{0} : Downloading webpage for movie {1} - {2}'.format(thread_id,
                                                                movie, website)
     )
-    raw_html = str(request.urlopen(website).read())
+
+    done = False
+    while not done:
+        try:
+            raw_html = str(request.urlopen(website).read())
+            done = True
+        except RequestException:
+            print_error('{0} : Error Occurred, retrying'.format(thread_id))
 
     movie_json = {
         'movie_name': movie,
@@ -51,7 +58,14 @@ def download_movie(thread_id, init, url, movie):
         website_ = start_address + url_
         print_info('{0} : Downloading webpage for song {1} -> {2} - {'
                    '3}'.format(thread_id, movie, song, website_))
-        raw_html_ = str(request.urlopen(website_).read())
+
+        done = False
+        while not done:
+            try:
+                raw_html_ = str(request.urlopen(website_).read())
+                done = True
+            except RequestException:
+                print_error('{0} : Error occurred, retrying'.format(thread_id))
 
         # Get singers and all
         singers = findall(r'Singer\(s\).*?:(.*?)<br>', raw_html_)
@@ -142,7 +156,14 @@ def download_movies_from_page(thread_id, init, number):
         .format(init, number)
     print_info('{0} : Downloading webpage for initial {1} page {2} - {'
                '3}'.format(thread_id, init, number, website))
-    raw_html = str(request.urlopen(website).read())
+
+    done = False
+    while not done:
+        try:
+            raw_html = str(request.urlopen(website).read())
+            done = True
+        except RequestException:
+            print_error('{0} : Error occurred, retrying')
 
     # Fetch movies and their URL
     movies_list_with_url = findall(r'<li>.*?\"(.*?)\">(.*?)<', raw_html)
@@ -192,7 +213,13 @@ def initial(thread_id, init):
         mkdir(path_init)  # Make it exist
     done = False
     while not done:
-        raw_html = str(request.urlopen(website).read())
+        done1 = False
+        while not done1:
+            try:
+                raw_html = str(request.urlopen(website).read())
+                done1 = True
+            except RequestException:
+                print_error('{0} : Error occurred, retrying'.format(thread_id))
         if init != '0':  # If not zero, it will be at this position
             number_of_movies = raw_html[2343:].split(" ", 1)[0]
         else:  # Else count list elements, buggy site
