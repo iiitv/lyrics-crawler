@@ -214,7 +214,6 @@ def full_crawl(level=0):
 
 
 def incremental_crawl():
-    # TODO - Implement this, update data from homepage only
     pass
 
 

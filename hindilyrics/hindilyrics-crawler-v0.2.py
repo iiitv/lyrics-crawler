@@ -279,6 +279,7 @@ def full_crawl(number_of_threads):
 
 
 def incremental_crawl(number_of_threads):
+    # TODO - Implement this, update data from homepage only
     pass
 
 
