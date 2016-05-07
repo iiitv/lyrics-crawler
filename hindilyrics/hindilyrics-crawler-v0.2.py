@@ -257,7 +257,7 @@ def process_arguments(arguments):
     try:
         makedirs(location)
     except Exception:
-        print_info('download directory already exists')
+        print_warning('Download directory already exists')
 
     return number_of_threads, crawl_type
 
