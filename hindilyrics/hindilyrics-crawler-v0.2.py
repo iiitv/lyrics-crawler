@@ -4,7 +4,7 @@
 import json
 from getopt import getopt, GetoptError
 from math import ceil
-from os import path, mkdir
+from os import path, mkdir, makedirs
 from queue import Queue
 from re import findall, DOTALL
 from string import ascii_lowercase
@@ -20,7 +20,7 @@ location = ''
 start_address = 'http://www.hindilyrics.net'
 USAGE = 'python hindilyrics-crawler-v0.2.py -t <type of crawl DEFAULT : full>' \
         ' -n <number of threads DEFAULT : 4> -o <output destination DEFAULT :' \
-        ' ./>'
+        ' downloads/>'
 
 
 def download_movie(thread_id, init, url, movie):
@@ -240,7 +240,7 @@ def process_arguments(arguments):
         sys.exit()
 
     number_of_threads = 4
-    location = './'
+    location = 'downloads/'
     crawl_type = 'full'
     for opt, arg in opts:
         if opt in ('-t', '--type'):
@@ -254,6 +254,10 @@ def process_arguments(arguments):
             if arg[-1] != '/':
                 arg += '/'
             location = arg
+    try:
+        makedirs(location)
+    except Exception:
+        print_info('download directory already exists')
 
     return number_of_threads, crawl_type
 
