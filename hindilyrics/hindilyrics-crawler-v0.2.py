@@ -13,7 +13,6 @@ from urllib import request
 
 from print_util import print_info, current_time, print_error, print_usage, \
     print_warning
-from requests import RequestException
 
 task_queue = Queue()  # She will do all the magic
 location = ''
@@ -37,7 +36,7 @@ def download_movie(thread_id, init, url, movie):
         try:
             raw_html = str(request.urlopen(website).read())
             done = True
-        except RequestException:
+        except Exception:
             print_error('{0} : Error Occurred, retrying'.format(thread_id))
 
     movie_json = {
@@ -64,7 +63,7 @@ def download_movie(thread_id, init, url, movie):
             try:
                 raw_html_ = str(request.urlopen(website_).read())
                 done = True
-            except RequestException:
+            except Exception:
                 print_error('{0} : Error occurred, retrying'.format(thread_id))
 
         # Get singers and all
@@ -162,7 +161,7 @@ def download_movies_from_page(thread_id, init, number):
         try:
             raw_html = str(request.urlopen(website).read())
             done = True
-        except RequestException:
+        except Exception:
             print_error('{0} : Error occurred, retrying')
 
     # Fetch movies and their URL
@@ -218,7 +217,7 @@ def initial(thread_id, init):
             try:
                 raw_html = str(request.urlopen(website).read())
                 done1 = True
-            except RequestException:
+            except Exception:
                 print_error('{0} : Error occurred, retrying'.format(thread_id))
         if init != '0':  # If not zero, it will be at this position
             number_of_movies = raw_html[2343:].split(" ", 1)[0]
