@@ -29,3 +29,6 @@ This is the custom crawler for the **Lyrics Search Engine** project of summer 20
             -> 'artist_url'
     -> 'last_crawled' (YYYY-mm-dd HH:MM:SS)
     ```
+
+* [smriti.com](smriti.com)
+    In Progress
