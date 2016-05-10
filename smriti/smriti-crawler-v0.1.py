@@ -1,17 +1,22 @@
 import json
-from os import path, mkdir
+import sys
+from getopt import getopt, GetoptError
+from os import path, mkdir, makedirs
 from queue import Queue
 from re import findall, DOTALL
 from string import ascii_lowercase
 from threading import Thread
 from urllib import request
 
-from print_util import print_error, print_info, current_time
+from print_util import print_error, print_info, current_time, print_usage, \
+    print_warning
 
 task_queue = Queue()
 location = 'downloads/'
 start_address = 'http://smriti.com'
 hdr = {'User-Agent': 'Mozilla/5.0'}
+USAGE = 'python smriti-crawler-v0.1.py -o <output directory DEFAULT : ' \
+        'downloads/> -n <number of threads DEFAULT : 4'
 
 
 def download_movie(thread_id, init, url, movie):
@@ -155,7 +160,43 @@ def main(number_of_threads):
         thread_dict[i].join()
 
 
+def process_arguments(arguments):
+    global USAGE, location
+
+    try:
+        opts, args = getopt(
+            arguments,
+            'n:o:',
+            [
+                'number-of-threads=',
+                'output-location='
+            ]
+        )
+    except GetoptError:
+        print_error('Invalid arguments')
+        print_usage(USAGE)
+        import sys
+        sys.exit()
+
+    number_of_threads = 4
+    location = 'downloads/'
+    for opt, arg in opts:
+        if opt in ('-n', '--number-of-threads'):
+            number_of_threads = int(arg)
+        elif opt in ('-o', '--output-location'):
+            if arg[-1] != '/':
+                arg += '/'
+            location = arg
+    try:
+        makedirs(location)
+    except Exception:
+        print_warning('Download directory already exists')
+
+    return number_of_threads
+
+
 if __name__ == "__main__":
     if not path.isdir(location):
         mkdir(location)
-    main(4)
+
+    main(process_arguments(sys.argv[1:]))
