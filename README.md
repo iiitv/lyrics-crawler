@@ -34,4 +34,19 @@ This is the custom crawler for the **Lyrics Search Engine** project of summer 20
     Version 0.1  
     Usage - `python smriti-crawler-v0.1.py -o <output directory DEFAULT : 'downloads/'> -n <number of threads DEFAULT : 4>`
     
-    Schema of storage of lyrics : Same as that for hindilyrics.net.
+    Schema of storage of lyrics : 
+    ```
+    File - <initlal>/<movie>.json
+    Structure -
+    -> 'movie_name'
+    -> 'website_prefix'
+    -> 'movie_url'
+    -> 'songs' (array)
+        -> 'song_name'
+        -> 'song_url'
+        -> 'lyrics'
+        -> 'singers' (array)
+        -> 'music_by' (array)
+        -> 'lyricists' (array)
+    -> 'last_crawled' (YYYY-mm-dd HH:MM:SS)
+    ```
