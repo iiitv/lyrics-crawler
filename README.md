@@ -32,6 +32,6 @@ This is the custom crawler for the **Lyrics Search Engine** project of summer 20
 
 * [smriti.com](http://smriti.com)  
     Version 0.1  
-    Usage - `python smriti-crawler-v0.1.py -o <output directory DEFAULT : 'downloads/'> -n <number of threads DEFAULT : 4`
+    Usage - `python smriti-crawler-v0.1.py -o <output directory DEFAULT : 'downloads/'> -n <number of threads DEFAULT : 4>`
     
     Schema of storage of lyrics : Same as that for hindilyrics.net.

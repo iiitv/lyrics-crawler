@@ -16,7 +16,7 @@ location = 'downloads/'
 start_address = 'http://smriti.com'
 hdr = {'User-Agent': 'Mozilla/5.0'}
 USAGE = 'python smriti-crawler-v0.1.py -o <output directory DEFAULT : ' \
-        'downloads/> -n <number of threads DEFAULT : 4'
+        'downloads/> -n <number of threads DEFAULT : 4>'
 
 
 def download_movie(thread_id, init, url, movie):
