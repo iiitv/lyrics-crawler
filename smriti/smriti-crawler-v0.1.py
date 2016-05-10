@@ -1,10 +1,12 @@
+import json
+from os import path, mkdir
 from queue import Queue
 from re import findall, DOTALL
 from string import ascii_lowercase
 from threading import Thread
 from urllib import request
 
-from print_util import print_error, print_info
+from print_util import print_error, print_info, current_time
 
 task_queue = Queue()
 location = 'downloads/'
@@ -18,33 +20,86 @@ def download_movie(thread_id, init, url, movie):
     print_info('{0} : Getting webpage for movie {1} - {2}'.format(thread_id,
                                                                   movie, url))
 
+    movie_dict = {
+        'movie_name': movie,
+        'movie_url': url,
+        'website_prefix': start_address
+    }
     raw_html = ''
     website = start_address + url
+    req = request.Request(website, headers=hdr)
     done = False
     while not done:
         try:
-            req = request.Request(website, headers=hdr)
-            raw_html = str(request.urlopen(req).read())
+            raw_html = str(request.urlopen(req).read(), 'utf-8')
             done = True
         except Exception:
             print_error('{0} : Error occurred while getting {1}, '
                         'retrying'.format(thread_id, website))
 
-    main_content = findall(r'index</a><br/>\n(.*?)</div> <', raw_html, DOTALL)[
-        0]
+    songs_with_url = findall(r'<div class="onesong">(.*?): <a href=.*?<a '
+                             r'href="(.*?)">', raw_html, DOTALL)
 
-    song_with_url = findall(r'<div class="onesong">(.*?): <a href=.*?<a '
-                            r'href="(.*?)">', main_content, DOTALL)
+    song_array = []
+    for song, url_ in songs_with_url:
+        song_dict = {
+            'song_name': song,
+            'song_url': url_
+        }
+        website_ = start_address + url_
+        req = request.Request(website_, headers=hdr)
+        song_html = str(request.urlopen(req).read())
 
-    print(song_with_url)
+        singers = findall(r'<li><b>Singer\(s\):</b> <.*?>(.*?)</', song_html,
+                          DOTALL)
+        if len(singers) > 0:
+            singers = singers[0]
+            singers = singers.split(', ')
+            song_dict['singers'] = singers
+
+        music_by = findall(r'<li><b>Mu.*?:</b> <.*?>(.*?)</', song_html, DOTALL)
+        if len(music_by) > 0:
+            music_by = music_by[0]
+            music_by = music_by.split(', ')
+            song_dict['music_by'] = music_by
+
+        lyricist = findall(r'<li><b>L.*?:</b> <.*?>(.*?)</', song_html, DOTALL)
+        if len(lyricist) > 0:
+            lyricist = lyricist[0]
+            lyricist = lyricist.split(', ')
+            song_dict['lyricists'] = lyricist
+
+        lyrics = findall(
+            r'<div class=\"son.*?>(.*?)</div>',
+            song_html,
+            DOTALL)[0].replace(
+            '<br/>', '\n'
+        ).replace(
+            '<p>', ''
+        ).replace(
+            '</p>', ''
+        )
+
+        lyrics = lyrics
+        song_dict['lyrics'] = u'{0}'.format(lyrics)
+        song_array.append(song_dict)
+
+    movie_dict['songs'] = song_array
+    movie_dict['last_crawled'] = current_time()
 
     file_path = location + init + '/' + movie + '.json'
     print_info('{0} : Saving movie data to {1}'.format(thread_id, file_path))
+    with open(file_path, 'w', encoding='utf-8') as f:
+        json.dump(movie_dict, f)
     return
 
 
 def get_movies(thread_id, init):
-    global start_address, hdr
+    global start_address, hdr, location
+
+    folder_location = location + ('0' if init == '1' else init)
+    if not path.isdir(folder_location):
+        mkdir(folder_location)
 
     print_info('{0} : Getting webpage for movies starting with \'{'
                '1}\''.format(thread_id, init))
@@ -102,4 +157,6 @@ def main(number_of_threads):
 
 
 if __name__ == "__main__":
+    if not path.isdir(location):
+        mkdir(location)
     main(4)
