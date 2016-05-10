@@ -1,4 +1,5 @@
 # TODO - Handle Keyboard Interrupts
+# TODO - Keep track of last updated timestamp
 
 import json
 from getopt import getopt, GetoptError
