@@ -80,7 +80,6 @@ def download_movie(thread_id, init, url, movie):
             '</p>', ''
         )
 
-        lyrics = lyrics
         song_dict['lyrics'] = u'{0}'.format(lyrics)
         song_array.append(song_dict)
 
