@@ -11,15 +11,15 @@ def get_connection():
 def create():
     sql = '''CREATE TABLE IF NOT EXISTS songs (
               id BIGSERIAL PRIMARY KEY NOT NULL ,
-              song VARCHAR(50),
-              song_url VARCHAR(1024),
-              movie VARCHAR(50),
-              movie_url VARCHAR(50),
-              start_url VARCHAR(1024),
+              song text,
+              song_url text,
+              movie text,
+              movie_url TEXT,
+              start_url text,
               lyrics TEXT,
-              singers VARCHAR(500),
-              director VARCHAR(50),
-              lyricist VARCHAR(50)
+              singers TEXT,
+              director TEXT,
+              lyricist TEXT
             );'''
 
     conn, cur = get_connection()

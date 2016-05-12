@@ -86,7 +86,7 @@ class CrawlerType0(BaseCrawler):
             lyrics, singers, music_by, lyricist = self.get_song_details(
                 song_html)
 
-            db_operations.save(
+            new_id = db_operations.save(
                 song=song,
                 song_url=song_url,
                 movie=movie,
@@ -96,6 +96,15 @@ class CrawlerType0(BaseCrawler):
                 singers=singers,
                 director=music_by,
                 lyricist=lyricist
+            )
+
+            print_util.print_info(
+                '{0} -> Saved details of song {1} ({2}) with id {3}'.format(
+                    thread_id,
+                    song,
+                    movie,
+                    new_id
+                )
             )
 
     def get_movies(self, thread_id, url):
