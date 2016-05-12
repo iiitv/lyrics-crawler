@@ -2,6 +2,7 @@ from queue import Queue
 from threading import Thread
 from urllib import request
 
+from crawler import db_operations
 from crawler import print_util
 
 dummy_header = {'User-Agent': 'Mozilla/5.0'}
@@ -46,9 +47,55 @@ class CrawlerType0(BaseCrawler):
         print_util.print_info('{0} -> Downloading movie {1} -> {2}'.format(
             thread_id, movie, url))
 
-    # TODO - Complete this function
+        movie_website = self.start_url + url
+        raw_html = ''
+        req = request.Request(movie_website, headers=dummy_header)
+        done = False
+        while not done:
+            try:
+                raw_html = request.urlopen(req).read().decode('utf-8')
+                done = True
+            except Exception:
+                print_util.print_error(
+                    '{0} -> Error downloading {1}. Retrying.'.format(
+                        thread_id,
+                        movie_website
+                    )
+                )
 
+        song_with_url = self.get_songs_with_url(raw_html)
 
+        for song_url, song in song_with_url:
+            song_html = ''
+            song_url = self.start_url + song_url
+            req = request.Request(song_url, headers=dummy_header)
+            done = False
+            while not done:
+                try:
+                    song_html = request.urlopen(req).read().decode('utf-8')
+                    done = True
+                except Exception:
+                    print_util.print_error(
+                        '{0} -> Error downloading {1}. Retrying.'.format(
+                            thread_id,
+                            song_html
+                        )
+                    )
+
+            lyrics, singers, music_by, lyricist = self.get_song_details(
+                song_html)
+
+            db_operations.save(
+                song=song,
+                song_url=song_url,
+                movie=movie,
+                movie_url=url,
+                start_url=self.start_url,
+                lyrics=lyrics,
+                singers=singers,
+                director=music_by,
+                lyricist=lyricist
+            )
 
     def get_movies(self, thread_id, url):
 
@@ -62,8 +109,10 @@ class CrawlerType0(BaseCrawler):
         while not done:
             try:
                 raw_html = request.urlopen(req).read().decode('utf-8')
+                done = True
             except Exception:
-                print('Error downloading {0}. Retrying.'.format(website))
+                print_util.print_error('{0} -> Error downloading {1}. Retrying.'
+                                       .format(thread_id, website))
 
         movies_with_url = self.get_movies_with_url(raw_html)
 
@@ -73,4 +122,22 @@ class CrawlerType0(BaseCrawler):
     @staticmethod
     def get_movies_with_url(raw_html):
         # User overrides this method to get list of movies from raw html
-        return [('foo@bar.com', 'Foo Bar')]
+        return [('foobar.com', 'Foo Bar')]
+
+    @staticmethod
+    def get_songs_with_url(raw_html):
+        # User overrides this method to get list of songs from raw html
+        return [('foobar.com', 'Foo Bar')]
+
+    @staticmethod
+    def get_song_details(raw_html):
+        # User overrides this method to get details for a song from raw html
+        return (
+            'lyrics',
+            [
+                'singer1',
+                'singer2'
+            ],
+            'music director',
+            'lyricist'
+        )
