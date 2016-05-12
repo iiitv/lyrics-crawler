@@ -12,6 +12,7 @@ class BaseCrawler:
     def __init__(self, name, start_url):
         self.name = name
         self.start_url = start_url
+        db_operations.create()
 
 
 class CrawlerType0(BaseCrawler):
