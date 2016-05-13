@@ -7,20 +7,21 @@ def current_time():  # Get current time
 
 
 def print_info(message):  # Information printing utility
-    message = '(' + current_time() + ') INF: ' + message
-    print(message)
+    pr(message, 'INF')
 
 
 def print_error(message):
-    message = '(' + current_time() + ') ERR: ' + message
-    print(message)
+    pr(message, 'ERR')
 
 
 def print_warning(message):
-    message = '(' + current_time() + ') WAR: ' + message
-    print(message)
+    pr(message, 'WAR')
 
 
 def print_usage(message):
-    message = '(' + current_time() + ') USG: ' + message
+    pr(message, 'USG')
+
+
+def pr(m1, m2):
+    message = '(' + current_time() + ') ' + m2 + ': ' + m1
     print(message)
