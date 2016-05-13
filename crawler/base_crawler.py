@@ -53,20 +53,7 @@ class CrawlerType0(BaseCrawler):
             return
 
         movie_website = self.start_url + url
-        raw_html = ''
-        req = request.Request(movie_website, headers=dummy_header)
-        done = False
-        while not done:
-            try:
-                raw_html = request.urlopen(req).read().decode('utf-8')
-                done = True
-            except Exception:
-                print_util.print_error(
-                    '{0} -> Error downloading {1}. Retrying.'.format(
-                        thread_id,
-                        movie_website
-                    )
-                )
+        raw_html = open_request(thread_id, movie_website)
 
         song_with_url = self.get_songs_with_url(raw_html)
 
@@ -77,20 +64,8 @@ class CrawlerType0(BaseCrawler):
 
         for song_url, song in song_with_url:
             song_html = ''
-            song_url = self.start_url + song_url
-            req = request.Request(song_url, headers=dummy_header)
-            done = False
-            while not done:
-                try:
-                    song_html = request.urlopen(req).read().decode('utf-8')
-                    done = True
-                except Exception:
-                    print_util.print_error(
-                        '{0} -> Error downloading {1}. Retrying.'.format(
-                            thread_id,
-                            song_html
-                        )
-                    )
+            song_url_ = self.start_url + song_url
+            raw_html = open_request(thread_id, song_url_)
 
             lyrics, singers, music_by, lyricist = self.get_song_details(
                 song_html)
@@ -122,16 +97,7 @@ class CrawlerType0(BaseCrawler):
             thread_id, url))
 
         website = self.start_url + url
-        req = request.Request(website, headers=dummy_header)
-        raw_html = ''
-        done = False
-        while not done:
-            try:
-                raw_html = request.urlopen(req).read().decode('utf-8')
-                done = True
-            except Exception:
-                print_util.print_error('{0} -> Error downloading {1}. Retrying.'
-                                       .format(thread_id, website))
+        raw_html = open_request(thread_id, website)
 
         movies_with_url = self.get_movies_with_url(raw_html)
 
@@ -160,3 +126,17 @@ class CrawlerType0(BaseCrawler):
             'music director',
             'lyricist'
         )
+
+
+def open_request(thread_id, url):
+    req = request.Request(url, headers=dummy_header)
+    done = False
+    raw_html = ''
+    while not done:
+        try:
+            raw_html = request.urlopen(req).read().decode('utf-8')
+            done = True
+        except Exception:
+            print_util.print_error('{0} -> Error downloading {1}. '
+                                   'Retrying'.format(thread_id, url))
+    return raw_html
