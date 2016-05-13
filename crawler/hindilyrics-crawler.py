@@ -42,7 +42,6 @@ def modify_artist(artist):
     return artist
 
 
-
 def main():
     dict_pages = {
         '0': 1,
