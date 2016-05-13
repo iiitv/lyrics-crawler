@@ -68,7 +68,7 @@ def save(song, song_url, movie, movie_url, start_url, lyrics, singers,
             )
         )
     else:
-        sql = """UPDATE table songs SET song=%s, song_url=%s, movie=%s,
+        sql = """UPDATE songs SET song=%s, song_url=%s, movie=%s,
         movie_url=%s, start_url=%s, lyrics=%s, singers=%s, director=%s,
         lyricist=%s, last_updated=CURRENT_TIMESTAMP,
         last_crawled=CURRENT_TIMESTAMP WHERE id=%s RETURNING id;"""
