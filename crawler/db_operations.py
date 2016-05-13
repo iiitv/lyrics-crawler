@@ -11,9 +11,9 @@ def get_connection():
 def create():
     sql = '''CREATE TABLE IF NOT EXISTS songs (
               id BIGSERIAL PRIMARY KEY NOT NULL ,
-              song text,
+              song TEXT,
               song_url VARCHAR(512),
-              movie text,
+              movie TEXT,
               movie_url VARCHAR(512),
               start_url VARCHAR(512),
               lyrics TEXT,
@@ -32,7 +32,67 @@ def create():
 
 def save(song, song_url, movie, movie_url, start_url, lyrics, singers,
          director, lyricist):
-    pass
+    sql = """SELECT id FROM songs WHERE song_url=%s AND start_url=%s;"""
+
+    conn, cur = get_connection()
+
+    cur.execute(
+        sql,
+        (
+            song_url,
+            start_url
+        )
+    )
+
+    result = cur.fetchall()
+    if len(result) == 0:
+        sql = """INSERT INTO songs(
+                    song, song_url, movie, movie_url, start_url, lyrics,
+                    singers, director, lyricist, last_updated, last_crawled
+                  )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s CURRENT_TIMESTAMP,
+                 CURRENT_TIMESTAMP) RETURNING id;"""
+
+        cur.execute(
+            sql,
+            (
+                song,
+                song_url,
+                movie,
+                movie_url,
+                start_url,
+                lyrics,
+                str(singers),
+                director,
+                lyricist
+            )
+        )
+    else:
+        sql = """UPDATE table songs SET song=%s, song_url=%s, movie=%s,
+        movie_url=%s, start_url=%s, lyrics=%s, singers=%s, director=%s,
+        lyricist=%s, last_updated=CURRENT_TIMESTAMP,
+        last_crawled=CURRENT_TIMESTAMP WHERE id=%s RETURNING id;"""
+
+        cur.execute(
+            sql,
+            (
+                song,
+                song_url,
+                movie,
+                movie_url,
+                start_url,
+                lyrics,
+                str(singers),
+                director,
+                lyricist,
+                result[0][0]
+            )
+        )
+
+    result = cur.fetchall()[0][0]
+    conn.commit()
+    conn.close()
+    return result
 
 
 def load(id):
@@ -57,7 +117,6 @@ def is_old_movie(start_url, url):
 
     sql = """SELECT date_part('month', age((SELECT last_updated FROM songs WHERE
  start_url=%s AND movie_url=%s LIMIT 1)));"""
-
 
     cur.execute(
         sql,
