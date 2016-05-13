@@ -2,8 +2,8 @@ from queue import Queue
 from threading import Thread
 from urllib import request
 
-from crawler import db_operations
-from crawler import print_util
+import db_operations
+import print_util
 
 dummy_header = {'User-Agent': 'Mozilla/5.0'}
 
@@ -65,7 +65,7 @@ class CrawlerType0(BaseCrawler):
         for song_url, song in song_with_url:
             song_html = ''
             song_url_ = self.start_url + song_url
-            raw_html = open_request(thread_id, song_url_)
+            song_html = open_request(thread_id, song_url_)
 
             lyrics, singers, music_by, lyricist = self.get_song_details(
                 song_html)
@@ -101,21 +101,24 @@ class CrawlerType0(BaseCrawler):
 
         movies_with_url = self.get_movies_with_url(raw_html)
 
+        print_util.print_info('{0} -> Found {1} movies on {2}'.format(
+            thread_id,
+            len(movies_with_url),
+            url
+        ))
+
         for url, movie in movies_with_url:
             self.task_queue.put((1, url, movie))
 
-    @staticmethod
-    def get_movies_with_url(raw_html):
+    def get_movies_with_url(self, raw_html):
         # User overrides this method to get list of movies from raw html
         return [('foobar.com', 'Foo Bar')]
 
-    @staticmethod
-    def get_songs_with_url(raw_html):
+    def get_songs_with_url(self, raw_html):
         # User overrides this method to get list of songs from raw html
         return [('foobar.com', 'Foo Bar')]
 
-    @staticmethod
-    def get_song_details(raw_html):
+    def get_song_details(self, raw_html):
         # User overrides this method to get details for a song from raw html
         return (
             'lyrics',

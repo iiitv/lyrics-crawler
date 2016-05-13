@@ -50,7 +50,7 @@ def save(song, song_url, movie, movie_url, start_url, lyrics, singers,
                     song, song_url, movie, movie_url, start_url, lyrics,
                     singers, director, lyricist, last_updated, last_crawled
                   )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s CURRENT_TIMESTAMP,
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP,
                  CURRENT_TIMESTAMP) RETURNING id;"""
 
         cur.execute(
@@ -63,8 +63,8 @@ def save(song, song_url, movie, movie_url, start_url, lyrics, singers,
                 start_url,
                 lyrics,
                 str(singers),
-                director,
-                lyricist
+                str(director),
+                str(lyricist)
             )
         )
     else:
@@ -142,7 +142,7 @@ def is_old_movie(start_url, url):
 
     result = cur.fetchall()
     conn.close()
-    return result[0] >= 6
+    return result[0][0] >= 6
 
 
 def update_last_crawl(start_url, url):
