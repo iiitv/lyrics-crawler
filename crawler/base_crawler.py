@@ -53,6 +53,10 @@ class CrawlerType0(BaseCrawler):
 
         if db_operations.is_old_movie(self.start_url, url):
             db_operations.update_last_crawl(self.start_url, url)
+            print_util.print_info('{0} -> Skipping movie {1}'.format(
+                thread_id,
+                movie
+            ))
             return
 
         movie_website = self.start_url + url
@@ -67,6 +71,10 @@ class CrawlerType0(BaseCrawler):
         if db_operations.number_of_songs(self.start_url, url) == len(
                 song_with_url):
             db_operations.update_last_crawl(self.start_url, url)
+            print_util.print_info('{0} -> Skipping movie {1}'.format(
+                thread_id,
+                movie
+            ))
             return
 
         for song_url, song in song_with_url:
