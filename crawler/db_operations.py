@@ -40,8 +40,7 @@ def load(id):
 
 
 def is_old_movie(start_url, url):
-    sql = """SELECT date_part('month', age((SELECT last_updated FROM songs WHERE
- start_url=%s AND movie_url=%s LIMIT 1)));"""
+    sql = """SELECT count(*) FROM songs WHERE start_url=%s AND movie_url=%s"""
 
     conn, cur = get_connection()
 
@@ -53,13 +52,42 @@ def is_old_movie(start_url, url):
         )
     )
 
-    result = cur.fetchall()
+    if cur.fetchall()[0][0] == 0:  # No such movie exists
+        return False
 
-    return result[0] > 5
+    sql = """SELECT date_part('month', age((SELECT last_updated FROM songs WHERE
+ start_url=%s AND movie_url=%s LIMIT 1)));"""
+
+
+    cur.execute(
+        sql,
+        (
+            start_url,
+            url
+        )
+    )
+
+    result = cur.fetchall()
+    conn.close()
+    return result[0] >= 6
 
 
 def update_last_crawl(start_url, url):
-    pass
+    sql = """UPDATE table songs SET last_crawled=CURRENT_TIMESTAMP WHERE
+start_url=%s AND movie_url=%s"""
+
+    conn, cur = get_connection()
+
+    conn.execute(
+        sql,
+        (
+            start_url,
+            url
+        )
+    )
+
+    conn.commit()
+    conn.close()
 
 
 def number_of_songs(start_url, url):
