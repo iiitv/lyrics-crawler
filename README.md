@@ -11,4 +11,4 @@ This is the custom crawler for the **Lyrics Search Engine** project of summer 20
     
 
 * [smriti.com](http://smriti.com)  
-    In progress.
+    Usage - `python smriti-crawler.py <number of threads>`
