@@ -19,7 +19,9 @@ def create():
               lyrics TEXT,
               singers TEXT,
               director TEXT,
-              lyricist TEXT
+              lyricist TEXT,
+              last_crawled TIMESTAMP,
+              last_updated TIMESTAMP
             );'''
 
     conn, cur = get_connection()
@@ -38,7 +40,22 @@ def load(id):
 
 
 def is_old_movie(start_url, url):
-    return False
+    sql = """SELECT date_part('month', age((SELECT last_updated FROM songs WHERE
+ start_url=%s AND movie_url=%s LIMIT 1)));"""
+
+    conn, cur = get_connection()
+
+    cur.execute(
+        sql,
+        (
+            start_url,
+            url
+        )
+    )
+
+    result = cur.fetchall()
+
+    return result[0] > 5
 
 
 def update_last_crawl(start_url, url):
