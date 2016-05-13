@@ -35,3 +35,15 @@ def save(song, song_url, movie, movie_url, start_url, lyrics, singers,
 
 def load(id):
     pass
+
+
+def is_old_movie(start_url, url):
+    return False
+
+
+def update_last_crawl(start_url, url):
+    pass
+
+
+def number_of_songs(start_url, url):
+    return 0

@@ -48,6 +48,10 @@ class CrawlerType0(BaseCrawler):
         print_util.print_info('{0} -> Downloading movie {1} -> {2}'.format(
             thread_id, movie, url))
 
+        if db_operations.is_old_movie(self.start_url, url):
+            db_operations.update_last_crawl(self.start_url, url)
+            return
+
         movie_website = self.start_url + url
         raw_html = ''
         req = request.Request(movie_website, headers=dummy_header)
@@ -65,6 +69,11 @@ class CrawlerType0(BaseCrawler):
                 )
 
         song_with_url = self.get_songs_with_url(raw_html)
+
+        if db_operations.number_of_songs(self.start_url, url) == len(
+                song_with_url):
+            db_operations.update_last_crawl(self.start_url, url)
+            return
 
         for song_url, song in song_with_url:
             song_html = ''
