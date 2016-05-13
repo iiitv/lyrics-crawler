@@ -12,10 +12,10 @@ def create():
     sql = '''CREATE TABLE IF NOT EXISTS songs (
               id BIGSERIAL PRIMARY KEY NOT NULL ,
               song text,
-              song_url text,
+              song_url VARCHAR(512),
               movie text,
-              movie_url TEXT,
-              start_url text,
+              movie_url VARCHAR(512),
+              start_url VARCHAR(512),
               lyrics TEXT,
               singers TEXT,
               director TEXT,
