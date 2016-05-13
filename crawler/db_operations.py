@@ -96,7 +96,21 @@ def save(song, song_url, movie, movie_url, start_url, lyrics, singers,
 
 
 def load(id):
-    pass
+    sql = """SELECT * FROM songs WHERE id=%s;"""
+
+    conn, cur = get_connection()
+
+    cur.execute(
+        sql,
+        (
+            id,
+        )
+    )
+    result = cur.fetchall()
+
+    conn.close()
+
+    return result[0][1:]
 
 
 def is_old_movie(start_url, url):
