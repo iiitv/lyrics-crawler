@@ -16,40 +16,31 @@ class HindilyricsCrawler(CrawlerType0):
         return findall(r'<li>.*?\"(.*?)\">(.*?)<', raw_html)
 
     def get_song_details(self, raw_html):
+        singers = modify_artist(findall(r'Singer\(s\).*?:(.*?)<br>', raw_html))
+        music_by = modify_artist(findall(r'Music By.*?:(.*?)<br>', raw_html))
+        lyricists = modify_artist(findall(r'Lyricist.*?:(.*?)<br>', raw_html))
 
-        singers = findall(r'Singer\(s\).*?:(.*?)<br>', raw_html)
-        if len(singers) > 0:
-            singers = singers[0]
-            singers = findall(
-                r'\">(.*?)<',
-                singers
-            )
-        else:
-            singers = ''
-
-        music_by = findall(r'Music By.*?:(.*?)<br>', raw_html)
-        if len(music_by) > 0:
-            music_by = music_by[0]
-            music_by = findall(
-                r'\">(.*?)<',
-                music_by
-            )
-        else:
-            music_by = ''
-
-        lyricists = findall(r'Lyricist.*?:(.*?)<br>', raw_html)
-        if len(lyricists) > 0:
-            lyricists = lyricists[0]
-            lyricists = findall(
-                r'\">(.*?)<',
-                lyricists
-            )
-        else:
-            lyricists = ''
-
-        lyrics = findall(r'<font face="verdana\">(.*?)</font', raw_html, DOTALL)
+        lyrics = findall(
+            r'<font face="verdana\">(.*?)</font',
+            raw_html,
+            DOTALL
+        )
 
         return lyrics, singers, music_by, lyricists
+
+
+def modify_artist(artist):
+    if len(artist) > 0:
+        artist = artist[0]
+        artist = findall(
+            r'\">(.*?)<',
+            artist
+        )
+    else:
+        artist = []
+
+    return artist
+
 
 
 def main():
