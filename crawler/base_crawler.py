@@ -40,8 +40,11 @@ class CrawlerType0(BaseCrawler):
             thread_dict[n] = temp_thread
             temp_thread.start()
 
-        for url in self.url_list:
-            self.task_queue.put((0, url))
+        while True:
+            for url in self.url_list:
+                self.task_queue.put((0, url))
+            for n in range(1, self.number_of_threads + 1):
+                thread_dict[n].join()
 
     def download_movie(self, thread_id, url, movie):
 
