@@ -146,12 +146,12 @@ def is_old_movie(start_url, url):
 
 
 def update_last_crawl(start_url, url):
-    sql = """UPDATE table songs SET last_crawled=CURRENT_TIMESTAMP WHERE
+    sql = """UPDATE songs SET last_crawled=CURRENT_TIMESTAMP WHERE
 start_url=%s AND movie_url=%s;"""
 
     conn, cur = get_connection()
 
-    conn.execute(
+    cur.execute(
         sql,
         (
             start_url,
