@@ -40,7 +40,7 @@ def load(id):
 
 
 def is_old_movie(start_url, url):
-    sql = """SELECT count(*) FROM songs WHERE start_url=%s AND movie_url=%s"""
+    sql = """SELECT count(*) FROM songs WHERE start_url=%s AND movie_url=%s;"""
 
     conn, cur = get_connection()
 
@@ -74,7 +74,7 @@ def is_old_movie(start_url, url):
 
 def update_last_crawl(start_url, url):
     sql = """UPDATE table songs SET last_crawled=CURRENT_TIMESTAMP WHERE
-start_url=%s AND movie_url=%s"""
+start_url=%s AND movie_url=%s;"""
 
     conn, cur = get_connection()
 
@@ -91,4 +91,18 @@ start_url=%s AND movie_url=%s"""
 
 
 def number_of_songs(start_url, url):
-    return 0
+    sql = """SELECT count(*) FROM songs WHERE start_url=%s AND movie_url=%s;"""
+
+    conn, cur = get_connection()
+
+    cur.execute(
+        sql,
+        (
+            start_url,
+            url
+        )
+    )
+
+    result = cur.fetchall()[0][0]
+    conn.close()
+    return result
