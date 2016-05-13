@@ -56,7 +56,11 @@ class CrawlerType0(BaseCrawler):
             return
 
         movie_website = self.start_url + url
-        raw_html = open_request(thread_id, movie_website)
+        success, raw_html = open_request(thread_id, movie_website)
+
+        if not success:
+            self.task_queue.put((1, url, movie))
+            return
 
         song_with_url = self.get_songs_with_url(raw_html)
 
@@ -68,7 +72,11 @@ class CrawlerType0(BaseCrawler):
         for song_url, song in song_with_url:
             song_html = ''
             song_url_ = self.start_url + song_url
-            song_html = open_request(thread_id, song_url_)
+            success, song_html = open_request(thread_id, song_url_)
+
+            if not success:
+                self.task_queue.put((1, url, movie))
+                return
 
             lyrics, singers, music_by, lyricist = self.get_song_details(
                 song_html)
@@ -100,7 +108,11 @@ class CrawlerType0(BaseCrawler):
             thread_id, url))
 
         website = self.start_url + url
-        raw_html = open_request(thread_id, website)
+        success, raw_html = open_request(thread_id, website)
+
+        if not success:
+            self.task_queue.put((0, url))
+            return
 
         movies_with_url = self.get_movies_with_url(raw_html)
 
@@ -136,13 +148,15 @@ class CrawlerType0(BaseCrawler):
 
 def open_request(thread_id, url):
     req = request.Request(url, headers=dummy_header)
-    done = False
     raw_html = ''
-    while not done:
-        try:
-            raw_html = request.urlopen(req).read().decode('utf-8')
-            done = True
-        except Exception:
-            print_util.print_error('{0} -> Error downloading {1}. '
-                                   'Retrying'.format(thread_id, url))
-    return raw_html
+    try:
+        raw_html = request.urlopen(req).read().decode('utf-8')
+    except Exception:
+        print_util.print_error(
+            '{0} -> Error downloading {1}. '.format(
+                thread_id,
+                url
+            )
+        )
+        return False, ''
+    return True, raw_html
