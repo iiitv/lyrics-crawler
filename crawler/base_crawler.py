@@ -1,10 +1,10 @@
+import traceback
 from queue import Queue
 from threading import Thread
 from urllib import request
 
 import db_operations
 import print_util
-import traceback
 
 dummy_header = {'User-Agent': 'Mozilla/5.0'}
 
@@ -17,7 +17,6 @@ class BaseCrawler:
 
 
 class CrawlerType0(BaseCrawler):
-
     def __init__(self, name, start_url, list_of_url, number_of_threads):
         super().__init__(name, start_url)
         self.url_list = list_of_url
@@ -61,7 +60,7 @@ class CrawlerType0(BaseCrawler):
         if db_operations.is_old_movie(self.start_url, url):
             db_operations.update_last_crawl(self.start_url, url)
             print_util.print_info(
-                '{0} -> Skipping movie {1}, not old enough or too new.'.format(
+                '{0} -> Skipping movie {1}, too old or too new.'.format(
                     thread_id,
                     movie
                 )
@@ -225,10 +224,85 @@ class CrawlerType1(BaseCrawler):
             self.task_queue.put((1, url, artist))
 
     def get_artist_albums(self, thread_id, url, artist):
-        pass
+
+        print_util.print_info('{0} -> Getting albums for artist {1}'.format(
+            thread_id,
+            artist
+        ))
+
+        if db_operations.is_old_movie(
+                self.start_url,
+                url
+        ):
+            print_util.print_info(
+                '{0} -> Skipping artist {1}, too old or too new.'.format(
+                    thread_id,
+                    artist
+                )
+            )
+
+        website = self.start_url + url
+        status, raw_html = open_request(thread_id, url)
+
+        if not status:
+            self.task_queue.put((1, url, artist))
+            return
+
+        albums_with_songs = self.get_albums_with_songs(raw_html)
+
+        for album, song_with_url in albums_with_songs:
+            for song_url, song in song_with_url:
+                song_website = self.start_url + song_url
+                success, song_html = open_request(thread_id, song_website)
+                if not success:
+                    self.task_queue.put((1, url, artist))
+                    return
+
+                lyrics = self.get_song_details(song_html)
+                new_id = db_operations.save(
+                    song=song,
+                    song_url=song_url,
+                    movie=album,
+                    movie_url=url,
+                    start_url=self.start_url,
+                    lyrics=lyrics,
+                    singers=artist,
+                    director=artist,
+                    lyricist=artist
+                )
+
+                print_util.print_info(
+                    '{0} -> Saved song {1} ({2}) with ID {3}'.format(
+                        thread_id,
+                        song,
+                        album,
+                        new_id
+                    )
+                )
 
     def get_artists_with_url(self, raw_html):
         return [('a', 'a'), ]
+
+    def get_albums_with_songs(self, raw_html):
+        return [
+            (
+                'album1',
+                [
+                    ('url1', 'song1'),
+                    ('url2', 'song2')
+                ]
+            ),
+            (
+                'album2',
+                [
+                    ('url3', 'song3'),
+                    ('url4', 'song4')
+                ]
+            )
+        ]
+
+    def get_song_details(self, song_html):
+        return 'la la la la'
 
 
 def open_request(thread_id, url):
