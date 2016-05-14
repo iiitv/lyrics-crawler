@@ -141,8 +141,26 @@ def is_old_movie(start_url, url):
     )
 
     result = cur.fetchall()
+    status = int(result[0][0]) >= 6
+
+    sql = """SELECT date_part('days', age((SELECT last_crawled FROM songs
+    WHERE start_url=%s AND movie_url=%s LIMIT 1)));"""
+
+    cur.execute(
+        sql,
+        (
+            start_url,
+            url
+        )
+    )
+
+    result = cur.fetchall()
     conn.close()
-    return result[0][0] >= 6
+
+    status = status and int(result[0][0]) > 1  # Not updated in last six months
+    # and not crawled in last 1 day
+
+    return status
 
 
 def update_last_crawl(start_url, url):
