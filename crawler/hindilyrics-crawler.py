@@ -31,9 +31,9 @@ class HindilyricsCrawler(CrawlerType0):
 
 def modify_artist(artist):
     if len(artist) > 0:
-        return artist[0].findall(
+        return findall(
             r'\">(.*?)<',
-            artist
+            artist[0]
         )
     else:
         return []
