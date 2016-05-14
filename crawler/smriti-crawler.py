@@ -61,10 +61,10 @@ class SmritiCrawler(CrawlerType0):
             '\n'
         ).replace(
             '<p>',
-            '\n'
+            ''
         ).replace(
             '</p>',
-            ''
+            '\n\n'
         ).replace(
             '<br/>',
             '\n'
