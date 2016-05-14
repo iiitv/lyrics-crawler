@@ -4,6 +4,7 @@ from urllib import request
 
 import db_operations
 import print_util
+import traceback
 
 dummy_header = {'User-Agent': 'Mozilla/5.0'}
 
@@ -16,15 +17,15 @@ class BaseCrawler:
 
 
 class CrawlerType0(BaseCrawler):
-    task_queue = Queue()
 
     def __init__(self, name, start_url, list_of_url, number_of_threads):
         super().__init__(name, start_url)
         self.url_list = list_of_url
         self.number_of_threads = number_of_threads
+        self.task_queue = Queue()
 
     def threader(self, thread_id):
-        while True:
+        while not self.task_queue.empty():
             task = self.task_queue.get()
 
             if task[0] == 0:
@@ -34,15 +35,21 @@ class CrawlerType0(BaseCrawler):
 
     def run(self):
 
-        thread_dict = {}
-        for n in range(1, self.number_of_threads + 1):
-            temp_thread = Thread(target=self.threader, args=(n,))
-            thread_dict[n] = temp_thread
-            temp_thread.start()
-
         while True:
+
+            print('\n\n\n\n\n--------------------Starting New Crawl with {'
+                  '0}--------------------'.format(self.name))
+
+            self.task_queue = Queue()
+
             for url in self.url_list:
                 self.task_queue.put((0, url))
+
+            thread_dict = {}
+            for n in range(1, self.number_of_threads + 1):
+                temp_thread = Thread(target=self.threader, args=(n,))
+                thread_dict[n] = temp_thread
+                temp_thread.start()
             for n in range(1, self.number_of_threads + 1):
                 thread_dict[n].join()
 
@@ -53,10 +60,12 @@ class CrawlerType0(BaseCrawler):
 
         if db_operations.is_old_movie(self.start_url, url):
             db_operations.update_last_crawl(self.start_url, url)
-            print_util.print_info('{0} -> Skipping movie {1}'.format(
-                thread_id,
-                movie
-            ))
+            print_util.print_info(
+                '{0} -> Skipping movie {1}, not old enough or too new.'.format(
+                    thread_id,
+                    movie
+                )
+            )
             return
 
         movie_website = self.start_url + url
@@ -71,7 +80,8 @@ class CrawlerType0(BaseCrawler):
         if db_operations.number_of_songs(self.start_url, url) == len(
                 song_with_url):
             db_operations.update_last_crawl(self.start_url, url)
-            print_util.print_info('{0} -> Skipping movie {1}'.format(
+            print_util.print_info('{0} -> Skipping movie {1}, no new '
+                                  'songs.'.format(
                 thread_id,
                 movie
             ))
@@ -154,17 +164,86 @@ class CrawlerType0(BaseCrawler):
         )
 
 
-def open_request(thread_id, url):
-    req = request.Request(url, headers=dummy_header)
-    raw_html = ''
-    try:
-        raw_html = request.urlopen(req).read().decode('utf-8')
-    except Exception:
-        print_util.print_error(
-            '{0} -> Error downloading {1}. '.format(
+class CrawlerType1(BaseCrawler):
+    def __init__(self, name, start_url, list_of_url, number_of_threads):
+        super().__init__(name, start_url)
+        self.url_list = list_of_url
+        self.number_of_threads = number_of_threads
+        db_operations.create()
+        self.task_queue = Queue()
+
+    def run(self):
+
+        thread_dict = {}
+        for n in range(1, self.number_of_threads + 1):
+            temp_thread = Thread(target=self.threader, args=(n,))
+            thread_dict[n] = temp_thread
+            temp_thread.start()
+
+        while True:
+            for url in self.url_list:
+                self.task_queue.put((0, url))
+            for n in range(1, self.number_of_threads + 1):
+                thread_dict[n].join()
+
+    def threader(self, thread_id):
+
+        while not self.task_queue.empty():
+            task = self.task_queue.get()
+
+            if task[0] == 0:
+                self.get_artists(thread_id, task[1])
+            elif task[0] == 1:
+                self.get_artist_albums(thread_id, task[1], task[2])
+
+    def get_artists(self, thread_id, url):
+        print_util.print_info(
+            '{0} -> Getting artists from {1}'.format(
                 thread_id,
                 url
             )
         )
+
+        website = self.start_url + url
+        status, raw_html = open_request(thread_id, website)
+
+        if not status:
+            self.task_queue.put((0, url))
+            return
+
+        artists_with_url = self.get_artists_with_url(raw_html)
+
+        print_util.print_info(
+            '{0} -> Found {1} movies in {2}'.format(
+                thread_id,
+                len(artists_with_url),
+                url
+            )
+        )
+
+        for url, artist in artists_with_url:
+            self.task_queue.put((1, url, artist))
+
+    def get_artist_albums(self, thread_id, url, artist):
+        pass
+
+    def get_artists_with_url(self, raw_html):
+        return [('a', 'a'), ]
+
+
+def open_request(thread_id, url):
+    url = url.replace('', '')
+    req = request.Request(url, headers=dummy_header)
+    try:
+        raw_html = request.urlopen(req).read().decode('utf-8', 'ignore')
+    except Exception as e:
+        print_util.print_error(
+            '{0} -> Error downloading {1}. Exception : {2}. '.format(
+                thread_id,
+                url,
+                e
+            )
+        )
+        traceback.print_exc()
         return False, ''
     return True, raw_html

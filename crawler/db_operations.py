@@ -141,6 +141,7 @@ def is_old_movie(start_url, url):
     )
 
     result = cur.fetchall()
+    how_old = int(result[0][0])
     status = int(result[0][0]) >= 6
 
     sql = """SELECT date_part('days', age((SELECT last_crawled FROM songs
@@ -157,7 +158,9 @@ def is_old_movie(start_url, url):
     result = cur.fetchall()
     conn.close()
 
-    status = status and int(result[0][0]) > 1  # Not updated in last six months
+    las = int(result[0][0])
+
+    status = status or int(result[0][0]) < 1  # Not updated in last six months
     # and not crawled in last 1 day
 
     return status
