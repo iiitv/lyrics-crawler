@@ -15,7 +15,34 @@ headers = [
     ' Ubuntu Chromium/49.0.2623.108 Chrome/49.0.2623.108 Safari/537.36',
     'Gigabot/3.0 (http://www.gigablast.com/spider.html)',
     'Mozilla/5.0 (Windows; U; Windows NT 5.1; pt-BR) AppleWebKit/533.3 '
-    '(KHTML, like Gecko)  QtWeb Internet Browser/3.7 http://www.QtWeb.net'
+    '(KHTML, like Gecko)  QtWeb Internet Browser/3.7 http://www.QtWeb.net',
+    'Mozilla/5.0 (Linux; U; Android 4.0.3; ko-kr; LG-L160L Build/IML74K) '
+    'AppleWebkit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30',
+    'Mozilla/5.0 (BlackBerry; U; BlackBerry 9900; en) AppleWebKit/534.11+ '
+    '(KHTML, like Gecko) Version/7.1.0.346 Mobile Safari/534.11+',
+    'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; BOLT/2.340) '
+    'AppleWebKit/530+ (KHTML, like Gecko) Version/4.0 Safari/530.17 '
+    'UNTRUSTED/1.0 3gpp-gba',
+    'Opera/9.80 (J2ME/MIDP; Opera Mini/9.80 (S60; SymbOS; Opera Mobi/23.348; '
+    'U; en) Presto/2.5.25 Version/10.54',
+    'Opera/12.02 (Android 4.1; Linux; Opera Mobi/ADR-1111101157; U; en-US) '
+    'Presto/2.9.201 Version/12.02',
+    'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) '
+    'Chrome/41.0.2228.0 Safari/537.36',
+    'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/532.2 (KHTML, '
+    'like Gecko) ChromePlus/4.0.222.3 Chrome/4.0.222.3 Safari/532.2',
+    'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1',
+    'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.4pre) '
+    'Gecko/20070404 K-Ninja/2.1.3',
+    'Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; AS; rv:11.0) like Gecko',
+    'Mozilla/5.0 (Future Star Technologies Corp.; Star-Blade OS; x86_64; U; '
+    'en-US) iNet Browser 4.7',
+    'Mozilla/5.0 (Windows; U; Windows NT 6.1; rv:2.2) Gecko/20110201',
+    'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.13) '
+    'Gecko/20080414 Firefox/2.0.0.13 Pogo/2.0.0.13.6866',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.75.14 '
+    '(KHTML, like Gecko) Version/7.0.3 Safari/7046A194A',
+    'WorldWideweb (NEXT)'
 ]
 
 
@@ -327,7 +354,8 @@ class CrawlerType1(BaseCrawler):
 
 
 def open_request(thread_id, url):
-    req = request.Request(url, headers=get_header())
+    agent = get_header()
+    req = request.Request(url, headers=agent)
     sleep(0.5)
     try:
         response = request.urlopen(req)
