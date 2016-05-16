@@ -1,6 +1,6 @@
 import traceback
 from queue import Queue
-from random import choice
+from random import choice, randint
 from threading import Thread
 from time import sleep
 from urllib import request
@@ -354,9 +354,10 @@ class CrawlerType1(BaseCrawler):
 
 
 def open_request(thread_id, url):
+    print(url)
     agent = get_header()
     req = request.Request(url, headers=agent)
-    sleep(0.5)
+    sleep_for_some_time()
     try:
         response = request.urlopen(req)
         raw_html = response.read().decode('utf-8', 'ignore')
@@ -376,3 +377,7 @@ def open_request(thread_id, url):
 
 def get_header():
     return {'User-Agent': choice(headers)}
+
+
+def sleep_for_some_time():
+    sleep(randint(5, 15))
