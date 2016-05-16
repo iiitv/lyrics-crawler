@@ -1,4 +1,5 @@
 import sys
+from random import shuffle
 from re import findall, DOTALL
 from string import ascii_lowercase
 
@@ -69,6 +70,8 @@ class AZLyricsCrawler(CrawlerType1):
 
 def main():
     list_of_initials = ['19', ] + list(ascii_lowercase)
+
+    shuffle(list_of_initials)
 
     crawler = AZLyricsCrawler(
         'AZ Lyrics Crawler',
