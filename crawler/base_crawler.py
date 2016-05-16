@@ -1,12 +1,22 @@
 import traceback
 from queue import Queue
+from random import choice
 from threading import Thread
+from time import sleep
 from urllib import request
 
 import db_operations
 import print_util
 
-dummy_header = {'User-Agent': 'Mozilla/5.0'}
+headers = [
+    'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+    'Googlebot/2.1 (+http://www.google.com/bot.html)',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko)'
+    ' Ubuntu Chromium/49.0.2623.108 Chrome/49.0.2623.108 Safari/537.36',
+    'Gigabot/3.0 (http://www.gigablast.com/spider.html)',
+    'Mozilla/5.0 (Windows; U; Windows NT 5.1; pt-BR) AppleWebKit/533.3 '
+    '(KHTML, like Gecko)  QtWeb Internet Browser/3.7 http://www.QtWeb.net'
+]
 
 
 class BaseCrawler:
@@ -58,7 +68,6 @@ class CrawlerType0(BaseCrawler):
             thread_id, movie, url))
 
         if db_operations.is_old_movie(self.start_url, url):
-            db_operations.update_last_crawl(self.start_url, url)
             print_util.print_info(
                 '{0} -> Skipping movie {1}, too old or too new.'.format(
                     thread_id,
@@ -173,6 +182,9 @@ class CrawlerType1(BaseCrawler):
 
     def run(self):
 
+        for url in self.url_list:
+            self.task_queue.put((0, url))
+
         thread_dict = {}
         for n in range(1, self.number_of_threads + 1):
             temp_thread = Thread(target=self.threader, args=(n,))
@@ -180,10 +192,10 @@ class CrawlerType1(BaseCrawler):
             temp_thread.start()
 
         while True:
-            for url in self.url_list:
-                self.task_queue.put((0, url))
             for n in range(1, self.number_of_threads + 1):
                 thread_dict[n].join()
+            for url in self.url_list:
+                self.task_queue.put((0, url))
 
     def threader(self, thread_id):
 
@@ -225,10 +237,13 @@ class CrawlerType1(BaseCrawler):
 
     def get_artist_albums(self, thread_id, url, artist):
 
-        print_util.print_info('{0} -> Getting albums for artist {1}'.format(
-            thread_id,
-            artist
-        ))
+        print_util.print_info(
+            '{0} -> Getting albums for artist {1} - {2}'.format(
+                thread_id,
+                artist,
+                url
+            )
+        )
 
         if db_operations.is_old_movie(
                 self.start_url,
@@ -241,8 +256,8 @@ class CrawlerType1(BaseCrawler):
                 )
             )
 
-        website = self.start_url + url
-        status, raw_html = open_request(thread_id, url)
+        website = self.start_url + '/' + url
+        status, raw_html = open_request(thread_id, website)
 
         if not status:
             self.task_queue.put((1, url, artist))
@@ -259,6 +274,7 @@ class CrawlerType1(BaseCrawler):
                     return
 
                 lyrics = self.get_song_details(song_html)
+                '''
                 new_id = db_operations.save(
                     song=song,
                     song_url=song_url,
@@ -270,8 +286,12 @@ class CrawlerType1(BaseCrawler):
                     director=artist,
                     lyricist=artist
                 )
-
-                print_util.print_info(
+                '''
+                print(artist)
+                print(album)
+                print(song)
+                print(lyrics)
+                '''print_util.print_info(
                     '{0} -> Saved song {1} ({2}) with ID {3}'.format(
                         thread_id,
                         song,
@@ -279,9 +299,10 @@ class CrawlerType1(BaseCrawler):
                         new_id
                     )
                 )
+                '''
 
     def get_artists_with_url(self, raw_html):
-        return [('a', 'a'), ]
+        return [('a.com', 'a'), ]
 
     def get_albums_with_songs(self, raw_html):
         return [
@@ -306,10 +327,12 @@ class CrawlerType1(BaseCrawler):
 
 
 def open_request(thread_id, url):
-    url = url.replace('', '')
-    req = request.Request(url, headers=dummy_header)
+    req = request.Request(url, headers=get_header())
+    sleep(0.5)
     try:
-        raw_html = request.urlopen(req).read().decode('utf-8', 'ignore')
+        response = request.urlopen(req)
+        raw_html = response.read().decode('utf-8', 'ignore')
+        response.close()
     except Exception as e:
         print_util.print_error(
             '{0} -> Error downloading {1}. Exception : {2}. '.format(
@@ -321,3 +344,7 @@ def open_request(thread_id, url):
         traceback.print_exc()
         return False, ''
     return True, raw_html
+
+
+def get_header():
+    return {'User-Agent': choice(headers)}
