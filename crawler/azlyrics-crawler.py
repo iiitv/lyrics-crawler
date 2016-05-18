@@ -19,27 +19,29 @@ class AZLyricsCrawler(CrawlerType1):
         )[0]
 
         return findall(
-            r'<a href="(.*?)">(.*?)<',
-            refined
+            r'<a href=\"(.*?)\">(.*?)<',
+            refined,
+            DOTALL
         )
 
-    def get_album_with_songs(self, raw_html):
+    def get_albums_with_songs(self, raw_html):
         data = []
 
         album_html = findall(
-            r'iv class="album">(.*?)<d',
+            r'iv class=\"album\">(.*?)<d',
             raw_html,
             DOTALL
         )
 
-        for content in raw_html:
+        for content in album_html:
             album_name = findall(
-                r'<b>\"(.*?)"',
-                content
+                r'<b>\"(.*?)\"',
+                content,
+                DOTALL
             )[0]
 
             songs_with_url = findall(
-                r'<a href="(.*?)".*?>(.*?)<',
+                r'<a href=\"(\.\..*?)\" target=\"_blank\">(.*?)</a><br>',
                 content
             )
             data.append(
