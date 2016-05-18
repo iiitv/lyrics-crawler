@@ -243,7 +243,7 @@ class CrawlerType1(BaseCrawler):
         )
 
         website = self.start_url + url
-        status, raw_html = open_request(thread_id, website)
+        status, raw_html = open_request(thread_id, website, True)
 
         if not status:
             self.task_queue.put((0, url))
@@ -284,7 +284,7 @@ class CrawlerType1(BaseCrawler):
             )
 
         website = self.start_url + '/' + url
-        status, raw_html = open_request(thread_id, website)
+        status, raw_html = open_request(thread_id, website, True)
 
         if not status:
             self.task_queue.put((1, url, artist))
@@ -295,7 +295,7 @@ class CrawlerType1(BaseCrawler):
         for album, song_with_url in albums_with_songs:
             for song_url, song in song_with_url:
                 song_website = self.start_url + song_url
-                success, song_html = open_request(thread_id, song_website)
+                success, song_html = open_request(thread_id, song_website, True)
                 if not success:
                     self.task_queue.put((1, url, artist))
                     return
@@ -353,11 +353,12 @@ class CrawlerType1(BaseCrawler):
         return 'la la la la'
 
 
-def open_request(thread_id, url):
+def open_request(thread_id, url, delayed=False):
     print(url)
     agent = get_header()
     req = request.Request(url, headers=agent)
-    sleep_for_some_time()
+    if delayed:
+        sleep_for_some_time()
     try:
         response = request.urlopen(req)
         raw_html = response.read().decode('utf-8', 'ignore')
