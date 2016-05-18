@@ -24,6 +24,12 @@ class HindilyricsCrawler(CrawlerType0):
             r'<font face="verdana\">(.*?)</font',
             raw_html,
             DOTALL
+        )[0].replace(
+            '\\\\n',
+            '\n'
+        ).replace(
+            '\\\r',
+            ''
         )
 
         return lyrics, singers, music_by, lyricists
