@@ -38,7 +38,12 @@ class AZLyricsCrawler(CrawlerType1):
                 r'<b>\"(.*?)\"',
                 content,
                 DOTALL
-            )[0]
+            )
+
+            if len(album_name) == 0:
+                album_name = 'other'
+            else:
+                album_name = album_name[0]
 
             songs_with_url = findall(
                 r'<a href=\"\.\.(.*?)\" target=\"_blank\">(.*?)</a><br>',

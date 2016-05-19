@@ -252,7 +252,7 @@ class CrawlerType1(BaseCrawler):
         artists_with_url = self.get_artists_with_url(raw_html)
 
         print_util.print_info(
-            '{0} -> Found {1} movies in {2}'.format(
+            '{0} -> Found {1} artists in {2}'.format(
                 thread_id,
                 len(artists_with_url),
                 url
@@ -347,7 +347,6 @@ class CrawlerType1(BaseCrawler):
 
 
 def open_request(thread_id, url, delayed=False):
-    print(url)
     agent = get_header()
     req = request.Request(url, headers=agent)
     if delayed:
