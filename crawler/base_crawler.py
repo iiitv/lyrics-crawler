@@ -301,7 +301,6 @@ class CrawlerType1(BaseCrawler):
                     return
 
                 lyrics = self.get_song_details(song_html)
-                '''
                 new_id = db_operations.save(
                     song=song,
                     song_url=song_url,
@@ -313,12 +312,7 @@ class CrawlerType1(BaseCrawler):
                     director=artist,
                     lyricist=artist
                 )
-                '''
-                print(artist)
-                print(album)
-                print(song)
-                print(lyrics)
-                '''print_util.print_info(
+                print_util.print_info(
                     '{0} -> Saved song {1} ({2}) with ID {3}'.format(
                         thread_id,
                         song,
@@ -326,7 +320,6 @@ class CrawlerType1(BaseCrawler):
                         new_id
                     )
                 )
-                '''
 
     def get_artists_with_url(self, raw_html):
         return [('a.com', 'a'), ]
@@ -381,6 +374,6 @@ def get_header():
 
 
 def sleep_for_some_time():
-    t = randint(5, 15)
+    t = randint(3, 10)
     print_util.print_info('Next request in {0} seconds.'.format(t))
     sleep(t)

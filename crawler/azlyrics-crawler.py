@@ -41,7 +41,7 @@ class AZLyricsCrawler(CrawlerType1):
             )[0]
 
             songs_with_url = findall(
-                r'<a href=\"(\.\..*?)\" target=\"_blank\">(.*?)</a><br>',
+                r'<a href=\"\.\.(.*?)\" target=\"_blank\">(.*?)</a><br>',
                 content
             )
             data.append(

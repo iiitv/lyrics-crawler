@@ -24,11 +24,13 @@ class HindilyricsCrawler(CrawlerType0):
             r'<font face="verdana\">(.*?)</font',
             raw_html,
             DOTALL
-        )[0].replace(
+        )[0]
+
+        lyrics.replace(
             '\\\\n',
             '\n'
         ).replace(
-            '\\\r',
+            '\\r',
             ''
         )
 
