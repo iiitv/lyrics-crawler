@@ -1,4 +1,3 @@
-import traceback
 from queue import Queue
 from random import choice, randint
 from threading import Thread
@@ -297,6 +296,12 @@ class CrawlerType1(BaseCrawler):
             for song_url, song in song_with_url:
 
                 if db_operations.exists_song(self.start_url, song_url):
+                    print_util.print_info(
+                        '{0} -> Song {1} already exists. Skipping'.format(
+                            thread_id,
+                            song
+                        )
+                    )
                     return
 
                 song_website = self.start_url + song_url
@@ -368,7 +373,6 @@ def open_request(thread_id, url, delayed=False):
                 e
             )
         )
-        traceback.print_exc()
         return False, ''
     return True, raw_html
 
