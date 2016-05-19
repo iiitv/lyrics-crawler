@@ -373,6 +373,6 @@ def get_header():
 
 
 def sleep_for_some_time():
-    t = randint(3, 10)
+    t = randint(10, 20)
     print_util.print_info('Next request in {0} seconds.'.format(t))
     sleep(t)
