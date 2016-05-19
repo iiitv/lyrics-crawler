@@ -293,7 +293,12 @@ class CrawlerType1(BaseCrawler):
         albums_with_songs = self.get_albums_with_songs(raw_html)
 
         for album, song_with_url in albums_with_songs:
+
             for song_url, song in song_with_url:
+
+                if db_operations.exists_song(self.start_url, song_url):
+                    return
+
                 song_website = self.start_url + song_url
                 success, song_html = open_request(thread_id, song_website, True)
                 if not success:

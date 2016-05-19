@@ -200,3 +200,21 @@ def number_of_songs(start_url, url):
     result = cur.fetchall()[0][0]
     conn.close()
     return result
+
+
+def exists_song(start_url, url):
+    conn, cur = get_connection()
+
+    cur.execute(
+        'SELECT * FROM songs WHERE start_url=%s AND song_url=%s',
+        (
+            start_url,
+            url
+        )
+    )
+
+    result = cur.fetchall()
+
+    conn.close()
+
+    return len(result) > 0
