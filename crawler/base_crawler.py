@@ -529,10 +529,11 @@ class CrawlerType2(BaseCrawler):
 
     def get_song(self, thread_id, url, song, artist):
         print_util.print_info(
-            '{0} -> Getting song {1} - {2}'.format(
+            '{0} -> Getting song {1} ({3}) - {2}'.format(
                 thread_id,
                 song,
-                url
+                url,
+                artist
             )
         )
 
