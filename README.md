@@ -15,7 +15,7 @@ This is the custom crawler for the **Lyrics Search Engine** project of summer 20
     
 
 * [azlyrics.com](http://azlyrics.com)  
-    Usage - `python azlyrics-crawler.py <number of threads`
+    Usage - `python azlyrics-crawler.py <number of threads`  
     Warning : **Put only 1 thread to avoid getting blacklisted**
     
 * [lyricsmasti.com](http://lyricsmasti.com)  
