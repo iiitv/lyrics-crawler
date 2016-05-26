@@ -1,3 +1,5 @@
+from html import unescape
+
 from psycopg2 import connect
 
 
@@ -32,6 +34,13 @@ def create():
 
 def save(song, song_url, movie, movie_url, start_url, lyrics, singers,
          director, lyricist):
+    song, movie, lyrics, singers, director, lyricist = unescape(song), \
+                                                       unescape(movie), \
+                                                       unescape(lyrics), \
+                                                       unescape(str(singers)), \
+                                                       unescape(str(director)), \
+                                                       unescape(str(lyricist))
+
     sql = """SELECT id FROM songs WHERE song_url=%s AND start_url=%s;"""
 
     conn, cur = get_connection()
@@ -206,7 +215,7 @@ def exists_song(start_url, url):
     conn, cur = get_connection()
 
     cur.execute(
-        'SELECT * FROM songs WHERE start_url=%s AND song_url=%s',
+        'SELECT * FROM songs WHERE start_url=%s AND song_url=%s;',
         (
             start_url,
             url

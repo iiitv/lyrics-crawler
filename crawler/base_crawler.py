@@ -15,32 +15,17 @@ headers = [
     'Gigabot/3.0 (http://www.gigablast.com/spider.html)',
     'Mozilla/5.0 (Windows; U; Windows NT 5.1; pt-BR) AppleWebKit/533.3 '
     '(KHTML, like Gecko)  QtWeb Internet Browser/3.7 http://www.QtWeb.net',
-    'Mozilla/5.0 (Linux; U; Android 4.0.3; ko-kr; LG-L160L Build/IML74K) '
-    'AppleWebkit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30',
-    'Mozilla/5.0 (BlackBerry; U; BlackBerry 9900; en) AppleWebKit/534.11+ '
-    '(KHTML, like Gecko) Version/7.1.0.346 Mobile Safari/534.11+',
-    'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; BOLT/2.340) '
-    'AppleWebKit/530+ (KHTML, like Gecko) Version/4.0 Safari/530.17 '
-    'UNTRUSTED/1.0 3gpp-gba',
-    'Opera/9.80 (J2ME/MIDP; Opera Mini/9.80 (S60; SymbOS; Opera Mobi/23.348; '
-    'U; en) Presto/2.5.25 Version/10.54',
-    'Opera/12.02 (Android 4.1; Linux; Opera Mobi/ADR-1111101157; U; en-US) '
-    'Presto/2.9.201 Version/12.02',
     'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) '
     'Chrome/41.0.2228.0 Safari/537.36',
     'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/532.2 (KHTML, '
     'like Gecko) ChromePlus/4.0.222.3 Chrome/4.0.222.3 Safari/532.2',
-    'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1',
     'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.4pre) '
     'Gecko/20070404 K-Ninja/2.1.3',
-    'Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; AS; rv:11.0) like Gecko',
     'Mozilla/5.0 (Future Star Technologies Corp.; Star-Blade OS; x86_64; U; '
     'en-US) iNet Browser 4.7',
     'Mozilla/5.0 (Windows; U; Windows NT 6.1; rv:2.2) Gecko/20110201',
     'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.13) '
     'Gecko/20080414 Firefox/2.0.0.13 Pogo/2.0.0.13.6866',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.75.14 '
-    '(KHTML, like Gecko) Version/7.0.3 Safari/7046A194A',
     'WorldWideweb (NEXT)'
 ]
 
@@ -213,6 +198,8 @@ class CrawlerType1(BaseCrawler):
 
         thread_dict = {}
         for n in range(1, self.number_of_threads + 1):
+            print('\n\n\n\n\n--------------------Starting New Crawl with {'
+                  '0}--------------------'.format(self.name))
             temp_thread = Thread(target=self.threader, args=(n,))
             thread_dict[n] = temp_thread
             temp_thread.start()
@@ -271,6 +258,7 @@ class CrawlerType1(BaseCrawler):
             )
         )
 
+        '''
         if db_operations.is_old_movie(
                 self.start_url,
                 url
@@ -281,6 +269,7 @@ class CrawlerType1(BaseCrawler):
                     artist
                 )
             )
+        '''
 
         website = self.start_url + '/' + url
         status, raw_html = open_request(thread_id, website, True)
@@ -302,7 +291,7 @@ class CrawlerType1(BaseCrawler):
                             song
                         )
                     )
-                    return
+                    continue
 
                 song_website = self.start_url + song_url
                 success, song_html = open_request(thread_id, song_website, True)
@@ -356,8 +345,13 @@ class CrawlerType1(BaseCrawler):
         return 'la la la la'
 
 
-def open_request(thread_id, url, delayed=False):
-    agent = get_header()
+def open_request(thread_id, url, delayed=False, single_agent=False):
+    if not single_agent:
+        agent = get_header()
+    else:
+        agent = {
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/49.0.2623.108 Chrome/49.0.2623.108 Safari/537.36'}
+
     req = request.Request(url, headers=agent)
     if delayed:
         sleep_for_some_time()
@@ -377,11 +371,254 @@ def open_request(thread_id, url, delayed=False):
     return True, raw_html
 
 
+class CrawlerType2(BaseCrawler):
+    def __init__(self, name, start_url, list_of_urls, number_of_threads):
+        super().__init__(name, start_url)
+        self.url_list = list_of_urls
+        self.number_of_threads = number_of_threads
+        self.task_queue = Queue()
+
+    def run(self):
+        for url in self.url_list:
+            self.task_queue.put((0, url))
+
+        thread_dict = {}
+        for n in range(1, self.number_of_threads + 1):
+            temp_thread = Thread(target=self.threader, args=(n,))
+            thread_dict[n] = temp_thread
+            temp_thread.start()
+
+        while True:
+            for n in range(1, self.number_of_threads + 1):
+                thread_dict[n].join()
+            for url in self.url_list:
+                self.task_queue.put((0, url))
+
+    def threader(self, thread_id):
+        while not self.task_queue.empty():
+
+            task = self.task_queue.get()
+
+            if task[0] == 0:
+                self.get_artists(thread_id, task[1])
+            elif task[0] == 1:
+                self.get_artist(thread_id, task[1], task[2])
+            elif task[0] == 2:
+                self.get_songs_from_page(thread_id, task[1], task[2])
+            elif task[0] == 3:
+                self.get_song(thread_id, task[1], task[2], task[3])
+
+    def get_artists(self, thread_id, url):
+
+        print_util.print_info(
+            '{0} -> Getting artists from {1}'.format(
+                thread_id,
+                url
+            )
+        )
+
+        status, raw_html = open_request(thread_id, url, single_agent=True)
+
+        if not status:
+            self.task_queue.put((0, url))
+            return
+
+        artists_with_url = self.get_artist_with_url(raw_html)
+
+        for url, artist in artists_with_url:
+            self.task_queue.put(
+                (
+                    1,
+                    url,
+                    artist
+                )
+            )
+
+    def get_artist(self, thread_id, url, artist):
+
+        print_util.print_info(
+            '{0} -> Getting songs for artist {1}'.format(
+                thread_id,
+                artist
+            )
+        )
+
+        status, raw_html = open_request(thread_id, url, single_agent=True)
+        if not status:
+            self.task_queue.put(
+                (
+                    1,
+                    url,
+                    artist
+                )
+            )
+            return
+
+        pages = self.get_pages_for_artist(raw_html)
+
+        for url, song in self.get_songs(raw_html):
+            if not db_operations.exists_song(
+                    self.start_url,
+                    shorten_url(url, self.start_url)
+            ):
+                self.task_queue.put(
+                    (
+                        3,
+                        url,
+                        song,
+                        artist
+                    )
+                )
+            else:
+                print_util.print_info(
+                    '{0} -> Song {1} already exists. Skipping.'.format(
+                        thread_id,
+                        song
+                    )
+                )
+
+        for page in pages[1:]:
+            self.task_queue.put(
+                (
+                    2,
+                    page,
+                    artist
+                )
+            )
+
+    def get_songs_from_page(self, thread_id, url, artist):
+
+        print_util.print_info(
+            '{0} -> Getting songs from {1}'.format(
+                thread_id,
+                url
+            )
+        )
+
+        status, raw_html = open_request(thread_id, url, single_agent=True)
+
+        if not status:
+            self.task_queue.put(
+                (
+                    2,
+                    url
+                )
+            )
+            return
+
+        for url, song in self.get_songs(raw_html):
+            if not db_operations.exists_song(
+                    self.start_url,
+                    shorten_url(url, self.start_url)
+            ):
+                self.task_queue.put(
+                    (
+                        3,
+                        url,
+                        song,
+                        artist
+                    )
+                )
+            else:
+                print_util.print_info(
+                    '{0} -> Song {1} allready exists. Skipping.'.format(
+                        thread_id,
+                        song
+                    )
+                )
+
+    def get_song(self, thread_id, url, song, artist):
+        print_util.print_info(
+            '{0} -> Getting song {1} - {2}'.format(
+                thread_id,
+                song,
+                url
+            )
+        )
+
+        status, raw_html = open_request(thread_id, url, single_agent=True)
+        if not status:
+            self.task_queue.put(
+                (
+                    3,
+                    url,
+                    song,
+                    artist
+                )
+            )
+            return
+
+        album, lyrics, lyricist, additional_artists = self.get_song_details(
+            raw_html
+        )
+
+        new_id = db_operations.save(
+            song,
+            shorten_url(url, self.start_url),
+            album,
+            url,
+            self.start_url,
+            lyrics,
+            additional_artists + [artist, ],
+            [artist, ],
+            lyricist
+        )
+
+        print_util.print_info(
+            '{0} -> Saved song {1} with id {2}'.format(
+                thread_id,
+                song,
+                new_id
+            )
+        )
+
+    def get_song_details(self, raw_html):
+        return (
+            'album',
+            'la la la la',
+            [
+                'we',
+                'wrote',
+                'it'
+            ],
+            [
+                'we',
+                'too',
+                'contributed'
+            ]
+        )
+
+    def get_artist_with_url(self, raw_html):
+        return [
+            ('url1', 'artist1'),
+            ('url2', 'artist2')
+        ]
+
+    def get_pages_for_artist(self, raw_html):
+        return [
+            'url1',
+            'url2'
+        ]
+
+    def get_songs(self, raw_html):
+        return [
+            ('url1', 'song1'),
+            ('url2', 'song2')
+        ]
+
+
 def get_header():
     return {'User-Agent': choice(headers)}
 
 
 def sleep_for_some_time():
-    t = randint(10, 20)
+    t = randint(35, 60)
     print_util.print_info('Next request in {0} seconds.'.format(t))
     sleep(t)
+
+
+def shorten_url(complete_url, start_url):
+    return complete_url.replace(
+        start_url,
+        ''
+    )

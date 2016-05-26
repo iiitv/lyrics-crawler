@@ -1,7 +1,5 @@
-import sys
 from random import shuffle
 from re import findall, DOTALL
-from string import ascii_lowercase
 
 from base_crawler import CrawlerType1
 
@@ -76,7 +74,7 @@ class AZLyricsCrawler(CrawlerType1):
 
 
 def main():
-    list_of_initials = ['19', ] + list(ascii_lowercase)
+    list_of_initials = ['19', ]  # + list(ascii_lowercase)
 
     shuffle(list_of_initials)
 
@@ -84,7 +82,7 @@ def main():
         'AZ Lyrics Crawler',
         'http://azlyrics.com',
         ['/{0}.html'.format(i) for i in list_of_initials],
-        int(sys.argv[1])
+        1
     )
 
     crawler.run()
