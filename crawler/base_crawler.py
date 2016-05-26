@@ -1,4 +1,4 @@
-from queue import Queue
+from queue import Queue, LifoQueue
 from random import choice, randint
 from threading import Thread
 from time import sleep
@@ -376,7 +376,7 @@ class CrawlerType2(BaseCrawler):
         super().__init__(name, start_url)
         self.url_list = list_of_urls
         self.number_of_threads = number_of_threads
-        self.task_queue = Queue()
+        self.task_queue = LifoQueue()
 
     def run(self):
         for url in self.url_list:

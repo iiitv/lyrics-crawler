@@ -1,5 +1,6 @@
 import sys
 from re import findall, DOTALL, sub
+from string import ascii_lowercase
 
 from base_crawler import CrawlerType2
 
@@ -161,7 +162,7 @@ def main():
         'z': 8
     }
 
-    l = ['1', ]  # ['1', ] + list(ascii_lowercase)
+    l = ['1', ] + list(ascii_lowercase)
 
     list_of_url = []
 
