@@ -21,5 +21,5 @@ This is the custom crawler for the **Lyrics Search Engine** project of summer 20
 * [lyricsmasti.com](http://lyricsmasti.com)  
     Usage - `python lyricsmasti-crawler.py <number of threads>`
     
-* [metrolyrics.com](http://metrolyrics.com)
+* [metrolyrics.com](http://metrolyrics.com)  
     Usage - `python metrolyrics-crawler.py <number of threads>`
