@@ -1,4 +1,4 @@
-from queue import Queue, LifoQueue
+from queue import LifoQueue
 from random import choice, randint
 from threading import Thread
 from time import sleep
@@ -76,9 +76,6 @@ class CrawlerType0(BaseCrawler):
 
             task = self.task_queue.get()  # Get one of them
 
-            if task is None:  # Queue has been emptied, abort
-                return
-
             if task['n_errors'] >= self.max_allowed_errors:  # Too many errors
                 print_util.print_warning(
                     '{0} --> Too many errors in task {1}. Skipping.'.format(
@@ -130,8 +127,7 @@ class CrawlerType0(BaseCrawler):
                     '{0} --> Error : {1}'.format(
                         thread_id,
                         e
-                    ),
-                    colors.RED
+                    )
                 )  # Log it
                 task['n_errors'] += 1  # Increment number of errors
                 self.task_queue.put(task)  # Put back in queue
@@ -304,155 +300,212 @@ class CrawlerType0(BaseCrawler):
 
 
 class CrawlerType1(BaseCrawler):
-    def __init__(self, name, start_url, list_of_url, number_of_threads):
-        super().__init__(name, start_url)
+    def __init__(self, name, start_url, list_of_url, number_of_threads,
+                 delay_request, max_allowed_errors):
+        """
+
+        :param name: As usual
+        :param start_url: As usual
+        :param list_of_url: As usual
+        :param number_of_threads: As usual
+        :param delay_request: As usual
+        :param max_allowed_errors: As usual
+        """
+        super().__init__(name, start_url, number_of_threads=number_of_threads,
+                         delay_request=delay_request,
+                         max_err=max_allowed_errors)
         self.url_list = list_of_url
-        self.number_of_threads = number_of_threads
-        db_operations.create()
-        self.task_queue = Queue()
+        self.task_queue = LifoQueue()
 
     def run(self):
-
-        for url in self.url_list:
-            self.task_queue.put((0, url))
-
-        thread_dict = {}
-        for n in range(1, self.number_of_threads + 1):
-            print('\n\n\n\n\n--------------------Starting New Crawl with {'
-                  '0}--------------------'.format(self.name))
-            temp_thread = Thread(target=self.threader, args=(n,))
-            thread_dict[n] = temp_thread
-            temp_thread.start()
-
+        """
+        Method called from subclasses to start crawling process
+        """
         while True:
-            for n in range(1, self.number_of_threads + 1):
-                thread_dict[n].join()
+            # Crawl cycle starts
+            print_util.print_info(
+                'Starting new crawl with {0}'.format(
+                    self.name
+                )
+            )
+            # Add all URLs to task queue
             for url in self.url_list:
-                self.task_queue.put((0, url))
+                self.task_queue.put(
+                    {
+                        'type': 0,
+                        'url': url,
+                        'n_errors': 0
+                    }
+                )
+            # Start all threads
+            threads = []
+            for n in range(1, self.number_of_threads + 1):
+                temp_thread = Thread(
+                    target=self.threader,
+                    args=(n,)
+                )
+                threads.append(temp_thread)
+                temp_thread.start()
+            for temp_thread in threads:
+                temp_thread.join()
+                # Crawl cycle ends
 
     def threader(self, thread_id):
-
+        """
+        Worker function
+        :param thread_id: As usual
+        """
         while not self.task_queue.empty():
-            try:
-                task = self.task_queue.get()
+            task = self.task_queue.get()
 
-                if task[0] == 0:
-                    self.get_artists(thread_id, task[1])
-                elif task[0] == 1:
-                    self.get_artist_albums(thread_id, task[1], task[2])
+            if task['n_errors'] >= self.max_allowed_errors:
+                print_util.print_warning(
+                    '{0} --> Too many errors in task {1}. Skipping.'.format(
+                        thread_id,
+                        task
+                    )
+                )
+                continue
+
+            print_util.print_info(
+                '{0} --> New task : {1}'.format(
+                    thread_id,
+                    task
+                )
+            )
+
+            try:
+                if task['type'] == 0:
+                    self.get_artists(
+                        thread_id,
+                        task['url']
+                    )
+                elif task['type'] == 1:
+                    self.get_artist_albums(
+                        thread_id,
+                        task['url'],
+                        task['artist']
+                    )
+                elif task['type'] == 2:
+                    self.get_song(
+                        thread_id,
+                        task['url'],
+                        task['song'],
+                        task['album'],
+                        task['album_url'],
+                        task['artist']
+                    )
+
+                print_util.print_info(
+                    '{0} --> Task complete : {1}'.format(
+                        thread_id,
+                        task
+                    ),
+                    colors.GREEN
+                )
             except Exception as e:
                 print_util.print_error(
-                    'Exception in thread {0} - {1}'.format(
+                    '{0} --> Error : {1}'.format(
                         thread_id,
                         e
-                    ),
-                    colors.RED
+                    )
                 )
+                task['no_errors'] += 1
+                self.task_queue.put(task)
 
     def get_artists(self, thread_id, url):
-        print_util.print_info(
-            '{0} -> Getting artists from {1}'.format(
-                thread_id,
-                url
-            )
-        )
-
+        """
+        Method to get artists with URL from a web address
+        :param thread_id: As usual
+        :param url: As usual
+        """
         website = self.start_url + url
-        status, raw_html = open_request(thread_id, website, True)
-
-        if not status:
-            self.task_queue.put((0, url))
-            return
+        raw_html = open_request(website, delayed=self.delay_request)
 
         artists_with_url = self.get_artists_with_url(raw_html)
 
-        print_util.print_info(
-            '{0} -> Found {1} artists in {2}'.format(
-                thread_id,
-                len(artists_with_url),
-                url
+        for artist_url, artist in artists_with_url:
+            self.task_queue.put(
+                {
+                    'type': 1,
+                    'url': artist_url,
+                    'artist': artist,
+                    'no_errors': 0
+                }
             )
-        )
-
-        for url, artist in artists_with_url:
-            self.task_queue.put((1, url, artist))
 
     def get_artist_albums(self, thread_id, url, artist):
-
-        print_util.print_info(
-            '{0} -> Getting albums for artist {1} - {2}'.format(
-                thread_id,
-                artist,
-                url
-            )
-        )
-
-        '''
-        if db_operations.is_old_movie(
-                self.start_url,
-                url
-        ):
-            print_util.print_info(
-                '{0} -> Skipping artist {1}, too old or too new.'.format(
-                    thread_id,
-                    artist
-                )
-            )
-        '''
-
+        """
+        Method to get all songs for an artist
+        :param thread_id: As usual
+        :param url: As usual
+        :param artist: Artist name
+        """
         website = self.start_url + '/' + url
-        status, raw_html = open_request(thread_id, website, True)
-
-        if not status:
-            self.task_queue.put((1, url, artist))
-            return
+        raw_html = open_request(website, delayed=self.delay_request)
 
         albums_with_songs = self.get_albums_with_songs(raw_html)
 
         for album, song_with_url in albums_with_songs:
-
             for song_url, song in song_with_url:
-
-                if db_operations.exists_song(self.start_url, song_url):
-                    print_util.print_info(
-                        '{0} -> Song {1} already exists. Skipping'.format(
-                            thread_id,
-                            song
-                        )
-                    )
-                    continue
-
-                song_website = self.start_url + song_url
-                success, song_html = open_request(thread_id, song_website, True)
-                if not success:
-                    self.task_queue.put((1, url, artist))
-                    return
-
-                lyrics = self.get_song_details(song_html)
-                new_id = db_operations.save(
-                    song=song,
-                    song_url=song_url,
-                    movie=album,
-                    movie_url=url,
-                    start_url=self.start_url,
-                    lyrics=lyrics,
-                    singers=artist,
-                    director=artist,
-                    lyricist=artist
+                self.task_queue.put(
+                    {
+                        'type': 2,
+                        'url': song_url,
+                        'album': album,
+                        'album_url': url,
+                        'artist': artist
+                    }
                 )
-                print_util.print_info(
-                    '{0} -> Saved song {1} ({2}) with ID {3}'.format(
-                        thread_id,
-                        song,
-                        album,
-                        new_id
-                    )
+
+    def get_song(self, thread_id, url, song, album, album_url, artist):
+        """
+        Method to get details of a song and save in database
+        :param thread_id: As usual
+        :param url: As usual
+        :param song: Song title
+        :param album: Album name
+        :param album_url: URL of album (same as artist) on the website
+        :param artist: As usual
+        """
+        if db_operations.exists_song(self.start_url, url):
+            print_util.print_warning(
+                '{0} -> Song {1} already exists. Skipping'.format(
+                    thread_id,
+                    song
                 )
+            )
+            return
+
+        song_website = self.start_url + url
+        song_html = open_request(song_website, delayed=self.delay_request)
+        lyrics = self.get_song_details(song_html)
+        db_operations.save(
+            song=song,
+            song_url=url,
+            movie=album,
+            movie_url=album_url,
+            start_url=self.start_url,
+            lyrics=lyrics,
+            singers=artist,
+            director=artist,
+            lyricist=artist
+        )
 
     def get_artists_with_url(self, raw_html):
+        """
+        Get artist list from HTML code
+        :param raw_html: Web page HTML code
+        :return: Artists with URLs
+        """
         return [('a.com', 'a'), ]
 
     def get_albums_with_songs(self, raw_html):
+        """
+        Get all songs with albums for an artist
+        :param raw_html: Web page HTML code
+        :return: Songs with URL and album
+        """
         return [
             (
                 'album1',
@@ -471,6 +524,11 @@ class CrawlerType1(BaseCrawler):
         ]
 
     def get_song_details(self, song_html):
+        """
+        Get lyrics of the song from webpage
+        :param song_html:
+        :return:
+        """
         return 'la la la la'
 
 
