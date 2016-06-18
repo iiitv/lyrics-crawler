@@ -35,7 +35,8 @@ class BaseCrawler:
     def __init__(self, name, start_url, number_of_threads, max_err=10,
                  delay_request=False):
         """
-
+        Base class for all other crawlers. This class contains all information
+        that will be common in all crawlers.
         :param name: Name of crawler
         :param start_url: Base URL of website
         :param number_of_threads: Number of threads to use to crawl
@@ -54,6 +55,10 @@ class CrawlerType0(BaseCrawler):
                  max_err=10, delay_request=False):
 
         # Constructor for BaseCrawler
+        """
+        Crawler for the websites of type 0.
+        :param list_of_url: List of URLs to start with.
+        """
         super().__init__(name, start_url, number_of_threads, max_err,
                          delay_request)
 
@@ -62,6 +67,11 @@ class CrawlerType0(BaseCrawler):
         self.url_list = list_of_url
 
     def threader(self, thread_id):
+        """
+        Worker function.
+        :return:
+        :param thread_id: Assigned ID of thread.
+        """
         while not self.task_queue.empty():  # While there are any tasks
 
             task = self.task_queue.get()  # Get one of them
@@ -127,6 +137,9 @@ class CrawlerType0(BaseCrawler):
                 self.task_queue.put(task)  # Put back in queue
 
     def run(self):
+        """
+        Function to be called by subclasses to start crawler.
+        """
         while True:
             # Crawl cycle start
             print_util.print_info(
@@ -154,19 +167,18 @@ class CrawlerType0(BaseCrawler):
                 threads.append(temp_thread)
                 temp_thread.start()
 
-            # Wait for all tasks to finish, i.e. task_queue to get empty
-            # self.task_queue.join()
-
-            # Stop workers
-            # for n in range(1, self.number_of_threads + 1):
-            #     self.task_queue.put(None)
             for temp_thread in threads:
                 temp_thread.join()
 
                 # Crawl cycle ends
 
     def download_movie(self, thread_id, url, movie):
-
+        """
+        Method to get all songs from a movie website.
+        :param thread_id: As usual
+        :param url: URL of movie
+        :param movie: Name of movie
+        """
         movie_website = self.start_url + url
         raw_html = open_request(movie_website, delayed=self.delay_request)
 
@@ -198,6 +210,14 @@ class CrawlerType0(BaseCrawler):
             )
 
     def download_song(self, thread_id, url, song, movie, movie_url):
+        """
+        Method to get song details from website.
+        :param thread_id: As usual
+        :param url: URL of song
+        :param song: Name of song
+        :param movie: Name of movie
+        :param movie_url: URL of movie
+        """
         # Song already exists
         if db_operations.exists_song(self.start_url, url):
             print_util.print_warning(
@@ -228,8 +248,12 @@ class CrawlerType0(BaseCrawler):
         )
 
     def get_movies(self, thread_id, url):
-
         # Get website HTML
+        """
+        Get movie list from website
+        :param thread_id: As usual
+        :param url: URL of website from which movies are to be fetched
+        """
         website = self.start_url + url
         raw_html = open_request(website, delayed=self.delay_request)
 
@@ -247,14 +271,27 @@ class CrawlerType0(BaseCrawler):
 
     def get_movies_with_url(self, raw_html):
         # User overrides this method to get list of movies from raw html
+        """
+        Gets all movies' details from HTML code.
+        :param raw_html: HTML code of web page
+        :return: Movies with their URL
+        """
         return [('foobar.com', 'Foo Bar')]
 
     def get_songs_with_url(self, raw_html):
-        # User overrides this method to get list of songs from raw html
+        """
+        User overrides this method to get list of songs from raw html
+        :param raw_html: HTML code of web page
+        :return: Songs with URL
+        """
         return [('foobar.com', 'Foo Bar')]
 
     def get_song_details(self, raw_html):
-        # User overrides this method to get details for a song from raw html
+        """
+        User overrides this method to get details for a song from raw html
+        :param raw_html: HTML code of web page
+        :return: Structured song details
+        """
         return (
             'lyrics',
             [
