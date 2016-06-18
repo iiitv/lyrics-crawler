@@ -7,7 +7,8 @@ from base_crawler import CrawlerType0
 
 class HindilyricsCrawler(CrawlerType0):
     def __init__(self, name, start_url, list_of_url, number_of_threads):
-        super().__init__(name, start_url, list_of_url, number_of_threads)
+        super().__init__(name, start_url, list_of_url, number_of_threads,
+                         max_err=10, delay_request=False)
 
     def get_movies_with_url(self, raw_html):
         return findall(r'<li>.*?\"(.*?)\">(.*?)<', raw_html)
