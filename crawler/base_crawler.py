@@ -518,20 +518,38 @@ class CrawlerType2(BaseCrawler):
         self.task_queue = LifoQueue()
 
     def run(self):
-        for url in self.url_list:
-            self.task_queue.put((0, url))
-
-        thread_dict = {}
-        for n in range(1, self.number_of_threads + 1):
-            temp_thread = Thread(target=self.threader, args=(n,))
-            thread_dict[n] = temp_thread
-            temp_thread.start()
-
+        """
+        Function to be called by subclasses to start crawler
+        """
         while True:
-            for n in range(1, self.number_of_threads + 1):
-                thread_dict[n].join()
+            # Crawl cycle starts
+            print_util.print_info(
+                'Starting crawl with {0}'.format(
+                    self.name
+                )
+            )
+            # Add URLs to task queue
             for url in self.url_list:
-                self.task_queue.put((0, url))
+                self.task_queue.put(
+                    {
+                        'type': 0,
+                        'url': url,
+                        'n_errors': 0
+                    }
+                )
+            # Start all threads
+            threads = []
+            for n in range(1, self.number_of_threads + 1):
+                temp_thread = Thread(
+                    target=self.threader,
+                    args=(n,)
+                )
+                threads.append(temp_thread)
+                temp_thread.start()
+            # Wait for threads to finish
+            for temp_thread in threads:
+                temp_thread.join()
+                # Crawl cycle ends
 
     def threader(self, thread_id):
         while not self.task_queue.empty():
