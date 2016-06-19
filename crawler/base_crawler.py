@@ -552,27 +552,63 @@ class CrawlerType2(BaseCrawler):
                 # Crawl cycle ends
 
     def threader(self, thread_id):
+        """
+        Worker function
+        :param thread_id: Ass usual
+        """
         while not self.task_queue.empty():
 
-            try:
-                task = self.task_queue.get()
+            task = self.task_queue.get()
+            if task['n_errors'] >= self.max_allowed_errors:
+                print_util.print_warning(
+                    '{0} --> Too many errors in task {1}. Skipping.'.format(
+                        thread_id,
+                        task
+                    )
+                )
+                continue
 
-                if task[0] == 0:
-                    self.get_artists(thread_id, task[1])
-                elif task[0] == 1:
-                    self.get_artist(thread_id, task[1], task[2])
-                elif task[0] == 2:
-                    self.get_songs_from_page(thread_id, task[1], task[2])
-                elif task[0] == 3:
-                    self.get_song(thread_id, task[1], task[2], task[3])
+            print_util.print_info(
+                '{0} --> New task : {1}'.format(
+                    thread_id,
+                    task
+                )
+            )
+
+            try:
+                if task['type'] == 0:
+                    self.get_artists(
+                        thread_id,
+                        task['url']
+                    )
+                elif task['type'] == 1:
+                    self.get_artist(
+                        thread_id,
+                        task['url'],
+                        task['artist']
+                    )
+                elif task['type'] == 2:
+                    self.get_songs_from_page(
+                        thread_id,
+                        task['url'],
+                        task['artist']
+                    )
+                elif task['type'] == 3:
+                    self.get_song(
+                        thread_id,
+                        task['url'],
+                        task['song'],
+                        task['artist']
+                    )
             except Exception as e:
                 print_util.print_error(
-                    'Exception in thread {0} - {1}'.format(
+                    '{0} --> Error : {1}'.format(
                         thread_id,
                         e
-                    ),
-                    colors.RED
+                    )
                 )
+                task['n_errors'] += 1
+                self.task_queue.put(task)
 
     def get_artists(self, thread_id, url):
 
