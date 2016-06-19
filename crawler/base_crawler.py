@@ -1,34 +1,10 @@
 from queue import LifoQueue
-from random import choice, randint
 from threading import Thread
-from time import sleep
-from urllib import request
 
 import db_operations
 import print_util
+from network_manager import open_request, shorten_url
 from print_util import colors
-
-headers = [
-    'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
-    'Googlebot/2.1 (+http://www.google.com/bot.html)',
-    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko)'
-    ' Ubuntu Chromium/49.0.2623.108 Chrome/49.0.2623.108 Safari/537.36',
-    'Gigabot/3.0 (http://www.gigablast.com/spider.html)',
-    'Mozilla/5.0 (Windows; U; Windows NT 5.1; pt-BR) AppleWebKit/533.3 '
-    '(KHTML, like Gecko)  QtWeb Internet Browser/3.7 http://www.QtWeb.net',
-    'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) '
-    'Chrome/41.0.2228.0 Safari/537.36',
-    'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/532.2 (KHTML, '
-    'like Gecko) ChromePlus/4.0.222.3 Chrome/4.0.222.3 Safari/532.2',
-    'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.4pre) '
-    'Gecko/20070404 K-Ninja/2.1.3',
-    'Mozilla/5.0 (Future Star Technologies Corp.; Star-Blade OS; x86_64; U; '
-    'en-US) iNet Browser 4.7',
-    'Mozilla/5.0 (Windows; U; Windows NT 6.1; rv:2.2) Gecko/20110201',
-    'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.13) '
-    'Gecko/20080414 Firefox/2.0.0.13 Pogo/2.0.0.13.6866',
-    'WorldWideweb (NEXT)'
-]
 
 
 class BaseCrawler:
@@ -533,10 +509,12 @@ class CrawlerType1(BaseCrawler):
 
 
 class CrawlerType2(BaseCrawler):
-    def __init__(self, name, start_url, list_of_urls, number_of_threads):
-        super().__init__(name, start_url)
+    def __init__(self, name, start_url, list_of_urls, number_of_threads,
+                 delayed_request=False, max_allowed_error=10):
+        super().__init__(name, start_url, number_of_threads,
+                         delay_request=delayed_request,
+                         max_err=max_allowed_error)
         self.url_list = list_of_urls
-        self.number_of_threads = number_of_threads
         self.task_queue = LifoQueue()
 
     def run(self):
@@ -780,31 +758,3 @@ class CrawlerType2(BaseCrawler):
             ('url1', 'song1'),
             ('url2', 'song2')
         ]
-
-
-def get_header():
-    return {'User-Agent': choice(headers)}
-
-
-def open_request(url, delayed=False):
-    req = request.Request(url, headers=get_header())
-    if delayed:
-        sleep_for_some_time()
-
-    response = request.urlopen(req)
-    raw_html = response.read().decode('utf-8', 'ignore')
-    response.close()
-    return raw_html
-
-
-def sleep_for_some_time():
-    t = randint(35, 60)
-    print_util.print_info('Next request in {0} seconds.'.format(t))
-    sleep(t)
-
-
-def shorten_url(complete_url, start_url):
-    return complete_url.replace(
-        start_url,
-        ''
-    )
