@@ -20,13 +20,15 @@ class AZLyricsCrawler(CrawlerType1):
             DOTALL
         )[0]
 
-        return shuffle(
-            findall(
-                r'<a href=\"(.*?)\">(.*?)<',
-                refined,
-                DOTALL
-            )
+        result = findall(
+            r'<a href=\"(.*?)\">(.*?)<',
+            refined,
+            DOTALL
         )
+
+        shuffle(result)
+
+        return result
 
     def get_albums_with_songs(self, raw_html):
         data = []
@@ -60,7 +62,8 @@ class AZLyricsCrawler(CrawlerType1):
                 )
             )
 
-        return shuffle(data)
+        shuffle(data)
+        return data
 
     def get_song_details(self, song_html):
         return findall(
