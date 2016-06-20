@@ -5,8 +5,11 @@ from base_crawler import CrawlerType1
 
 
 class AZLyricsCrawler(CrawlerType1):
-    def __init__(self, name, start_url, url_list, number_of_threads):
-        super().__init__(name, start_url, url_list, number_of_threads)
+    def __init__(self, name, start_url, url_list, number_of_threads,
+                 delayed_request=True, max_errors=3):
+        super().__init__(name, start_url, url_list, number_of_threads,
+                         delay_request=delayed_request,
+                         max_allowed_errors=max_errors)
 
     def get_artists_with_url(self, raw_html):
         refined = findall(
@@ -82,7 +85,9 @@ def main():
         'AZ Lyrics Crawler',
         'http://azlyrics.com',
         ['/{0}.html'.format(i) for i in list_of_initials],
-        1
+        1,
+        max_errors=5,
+        delayed_request=True
     )
 
     crawler.run()
