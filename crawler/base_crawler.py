@@ -406,7 +406,7 @@ class CrawlerType1(BaseCrawler):
                     'type': 1,
                     'url': artist_url,
                     'artist': artist,
-                    'no_errors': 0
+                    'n_errors': 0
                 }
             )
 
@@ -430,7 +430,8 @@ class CrawlerType1(BaseCrawler):
                         'url': song_url,
                         'album': album,
                         'album_url': url,
-                        'artist': artist
+                        'artist': artist,
+                        'n_errors': 0
                     }
                 )
 
