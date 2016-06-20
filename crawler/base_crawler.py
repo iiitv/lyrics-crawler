@@ -711,6 +711,13 @@ class CrawlerType2(BaseCrawler):
         :param song: As usual
         :param artist: Artist of song
         """
+        if db_operations.exists_song(self.start_url, url):
+            print_util.print_warning(
+                '{0} --> Song {1} already exists. Skipping.'.format(
+                    thread_id,
+                    song
+                )
+            )
         complete_url = self.start_url + url
         raw_html = open_request(complete_url, delayed=self.delay_request)
 
