@@ -51,9 +51,3 @@ def sleep_for_some_time():
         )
         sleep(1)
         stdout.write('\r')
-
-def shorten_url(complete_url, start_url):
-    return complete_url.replace(
-        start_url,
-        ''
-    )
