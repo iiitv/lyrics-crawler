@@ -3,7 +3,7 @@ from threading import Thread
 
 import db_operations
 import print_util
-from network_manager import open_request, shorten_url
+from network_manager import open_request
 from print_util import colors
 
 
@@ -612,155 +612,98 @@ class CrawlerType2(BaseCrawler):
 
     def get_artists(self, thread_id, url):
 
-        print_util.print_info(
-            '{0} -> Getting artists from {1}'.format(
-                thread_id,
-                url
-            )
-        )
-
-        status, raw_html = open_request(thread_id, url, single_agent=True)
-
-        if not status:
-            self.task_queue.put((0, url))
-            return
+        """
+        Method to get artists from a URL
+        :param thread_id: As usual
+        :param url: As usual
+        """
+        complete_url = self.start_url + url
+        raw_html = open_request(complete_url, delayed=self.delay_request)
 
         artists_with_url = self.get_artist_with_url(raw_html)
 
-        for url, artist in artists_with_url:
+        for artist_url, artist in artists_with_url:
             self.task_queue.put(
-                (
-                    1,
-                    url,
-                    artist
-                )
+                {
+                    'type': 1,
+                    'url': artist_url,
+                    'artist': artist
+                }
             )
 
     def get_artist(self, thread_id, url, artist):
-
-        print_util.print_info(
-            '{0} -> Getting songs for artist {1}'.format(
-                thread_id,
-                artist
-            )
-        )
-
-        status, raw_html = open_request(thread_id, url, single_agent=True)
-        if not status:
-            self.task_queue.put(
-                (
-                    1,
-                    url,
-                    artist
-                )
-            )
-            return
+        """
+        Get songs for artist from URL in two parts:
+            1. Get songs from first page (:param url)
+            2. Add all other pages to task queue
+        :param thread_id:
+        :param url:
+        :param artist:
+        """
+        complete_url = self.start_url + url
+        raw_html = open_request(complete_url, delayed=self.delay_request)
 
         pages = self.get_pages_for_artist(raw_html)
 
-        for url, song in self.get_songs(raw_html):
-            if not db_operations.exists_song(
-                    self.start_url,
-                    shorten_url(url, self.start_url)
-            ):
-                self.task_queue.put(
-                    (
-                        3,
-                        url,
-                        song,
-                        artist
-                    )
-                )
-            else:
-                print_util.print_info(
-                    '{0} -> Song {1} already exists. Skipping.'.format(
-                        thread_id,
-                        song
-                    ),
-                    colors.ORANGE
-                )
+        # Add all songs from current page
+        for song_url, song in self.get_songs(raw_html):
+            self.task_queue.put(
+                {
+                    'type': 3,
+                    'url': song_url,
+                    'song': song,
+                    'artist': artist
+                }
+            )
 
+        # Add rest of pages in task queue
         for page in pages[1:]:
             self.task_queue.put(
-                (
-                    2,
-                    page,
-                    artist
-                )
+                {
+                    'type': 2,
+                    'url': page,
+                    'artist': artist
+                }
             )
 
     def get_songs_from_page(self, thread_id, url, artist):
+        """
+        Get songs from other pages of artist
+        :param thread_id: As usual
+        :param url: As usual
+        :param artist: As usual
+        """
+        complete_url = self.start_url + url
+        raw_html = open_request(complete_url, delayed=self.delay_request)
 
-        print_util.print_info(
-            '{0} -> Getting songs from {1}'.format(
-                thread_id,
-                url
-            )
-        )
-
-        status, raw_html = open_request(thread_id, url, single_agent=True)
-
-        if not status:
+        for song_url, song in self.get_songs(raw_html):
             self.task_queue.put(
-                (
-                    2,
-                    url,
-                    artist
-                )
+                {
+                    'type': 3,
+                    'url': song_url,
+                    'song': song,
+                    'artist': artist
+                }
             )
-            return
-
-        for url, song in self.get_songs(raw_html):
-            if not db_operations.exists_song(
-                    self.start_url,
-                    shorten_url(url, self.start_url)
-            ):
-                self.task_queue.put(
-                    (
-                        3,
-                        url,
-                        song,
-                        artist
-                    )
-                )
-            else:
-                print_util.print_info(
-                    '{0} -> Song {1} allready exists. Skipping.'.format(
-                        thread_id,
-                        song
-                    ),
-                    colors.ORANGE
-                )
 
     def get_song(self, thread_id, url, song, artist):
-        print_util.print_info(
-            '{0} -> Getting song {1} ({3}) - {2}'.format(
-                thread_id,
-                song,
-                url,
-                artist
-            )
-        )
-
-        status, raw_html = open_request(thread_id, url, single_agent=True)
-        if not status:
-            self.task_queue.put(
-                (
-                    3,
-                    url,
-                    song,
-                    artist
-                )
-            )
-            return
+        """
+        Get song from a URL
+        :param thread_id: As usual
+        :param url: As usual
+        :param song: As usual
+        :param artist: Artist of song
+        """
+        complete_url = self.start_url + url
+        raw_html = open_request(complete_url, delayed=self.delay_request)
 
         album, lyrics, lyricist, additional_artists = self.get_song_details(
             raw_html
-        )
+        )  # Note: additional_artists are artist(s) featured in the song
 
-        new_id = db_operations.save(
+        db_operations.save(
             song,
-            shorten_url(url, self.start_url),
+            url,
             album,
             url,
             self.start_url,
@@ -770,44 +713,53 @@ class CrawlerType2(BaseCrawler):
             lyricist
         )
 
-        print_util.print_info(
-            '{0} -> Saved song {1} with id {2}'.format(
-                thread_id,
-                song,
-                new_id
-            ),
-            colors.GREEN
-        )
-
     def get_song_details(self, raw_html):
+        """
+        User overrides this method to get details about a song
+        :param raw_html: HTML code of web page
+        :return: Song details
+        """
         return (
             'album',
-            'la la la la',
+            'lyrics',
             [
-                'we',
-                'wrote',
-                'it'
+                'lyricist1',
+                'lyricist2'
             ],
             [
-                'we',
-                'too',
-                'contributed'
+                'additional_artist1',
+                'additional_artist2',
             ]
         )
 
     def get_artist_with_url(self, raw_html):
+        """
+        User overrides this method to get all artists with URL from a web page
+        :param raw_html: HTML code of web page
+        :return: Artists with URLs
+        """
         return [
             ('url1', 'artist1'),
             ('url2', 'artist2')
         ]
 
     def get_pages_for_artist(self, raw_html):
+        """
+        Get a list of pages for an artist from given HTML code
+        :param raw_html: HTML code of web page
+        :return: List of URLs
+        """
         return [
             'url1',
             'url2'
         ]
 
     def get_songs(self, raw_html):
+        """
+        User overrides this function to get songs with URL from page's HTML
+        :param raw_html: HTML code for web page
+        :return: Songs with URLs
+        """
         return [
             ('url1', 'song1'),
             ('url2', 'song2')
