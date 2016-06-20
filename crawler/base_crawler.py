@@ -606,6 +606,13 @@ class CrawlerType2(BaseCrawler):
                         task['song'],
                         task['artist']
                     )
+                print_util.print_info(
+                    '{0} --> Task complete : {1}'.format(
+                        thread_id,
+                        task
+                    ),
+                    Colors.GREEN
+                )
             except Exception as e:
                 print_util.print_error(
                     '{0} --> Error : {1}'.format(
@@ -633,7 +640,8 @@ class CrawlerType2(BaseCrawler):
                 {
                     'type': 1,
                     'url': artist_url,
-                    'artist': artist
+                    'artist': artist,
+                    'n_errors': 0
                 }
             )
 
@@ -658,7 +666,8 @@ class CrawlerType2(BaseCrawler):
                     'type': 3,
                     'url': song_url,
                     'song': song,
-                    'artist': artist
+                    'artist': artist,
+                    'n_errors': 0
                 }
             )
 
@@ -668,7 +677,8 @@ class CrawlerType2(BaseCrawler):
                 {
                     'type': 2,
                     'url': page,
-                    'artist': artist
+                    'artist': artist,
+                    'n_errors': 0
                 }
             )
 
@@ -688,7 +698,8 @@ class CrawlerType2(BaseCrawler):
                     'type': 3,
                     'url': song_url,
                     'song': song,
-                    'artist': artist
+                    'artist': artist,
+                    'n_errors': 0
                 }
             )
 
