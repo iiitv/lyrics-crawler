@@ -277,7 +277,7 @@ class CrawlerType0(BaseCrawler):
 
 class CrawlerType1(BaseCrawler):
     def __init__(self, name, start_url, list_of_url, number_of_threads,
-                 delay_request, max_allowed_errors):
+                 delay_request=False, max_allowed_errors=3):
         """
 
         :param name: As usual
