@@ -4,7 +4,7 @@ from threading import Thread
 import db_operations
 import print_util
 from network_manager import open_request
-from print_util import colors
+from print_util import Colors
 
 
 class BaseCrawler:
@@ -92,10 +92,11 @@ class CrawlerType0(BaseCrawler):
                     )
 
                 print_util.print_info(
-                    'Task complete : {0}'.format(
+                    '{0} --> Task complete : {1}'.format(
+                        thread_id,
                         task
                     ),
-                    colors.GREEN
+                    Colors.GREEN
                 )  # Log success
 
             except Exception as e:  # Some error
@@ -117,7 +118,8 @@ class CrawlerType0(BaseCrawler):
             print_util.print_info(
                 'Starting new crawl with {0}.'.format(
                     self.name
-                )
+                ),
+                Colors.BLACK
             )
             # Add all URLs to task queue
             for url in self.url_list:
@@ -302,7 +304,8 @@ class CrawlerType1(BaseCrawler):
             print_util.print_info(
                 'Starting new crawl with {0}'.format(
                     self.name
-                )
+                ),
+                Colors.BLACK
             )
             # Add all URLs to task queue
             for url in self.url_list:
@@ -377,7 +380,7 @@ class CrawlerType1(BaseCrawler):
                         thread_id,
                         task
                     ),
-                    colors.GREEN
+                    Colors.GREEN
                 )
             except Exception as e:
                 print_util.print_error(
@@ -427,6 +430,7 @@ class CrawlerType1(BaseCrawler):
                 self.task_queue.put(
                     {
                         'type': 2,
+                        'song': song,
                         'url': song_url,
                         'album': album,
                         'album_url': url,
@@ -527,7 +531,8 @@ class CrawlerType2(BaseCrawler):
             print_util.print_info(
                 'Starting crawl with {0}'.format(
                     self.name
-                )
+                ),
+                Colors.BLACK
             )
             # Add URLs to task queue
             for url in self.url_list:
