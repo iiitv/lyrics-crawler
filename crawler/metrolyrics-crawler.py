@@ -80,7 +80,10 @@ class MetroLyricsCrawler(CrawlerType2):
 
         for url, artist in data:
             result.append(
-                (url, artist.replace(' Lyrics', '').strip(' \n'))
+                (
+                    url.replace('http://www.metrolyrics.com', ''),
+                    artist.replace(' Lyrics', '').strip(' \n')
+                )
             )
 
         return result
@@ -97,11 +100,14 @@ class MetroLyricsCrawler(CrawlerType2):
         else:
             area_of_interest = area_of_interest[0]
 
-        return findall(
+        links = findall(
             r'<a href="(.*?)"',
             area_of_interest,
             DOTALL
         )
+
+        return [link.replace('http://www.metrolyrics.com', '') for link in
+                links]
 
     def get_songs(self, raw_html):
         area_of_interest = findall(
@@ -125,7 +131,9 @@ class MetroLyricsCrawler(CrawlerType2):
 
         for url, song in _songs_with_url:
             songs_with_url.append(
-                (url, song.replace(' Lyrics', '').strip(' \n'))
+                (
+                    url.replace('http://www.metrolyrics.com', ''),
+                    song.replace(' Lyrics', '').strip(' \n'))
             )
 
         return songs_with_url
@@ -133,33 +141,33 @@ class MetroLyricsCrawler(CrawlerType2):
 
 def main():
     pages_dict = {
-        '1': 0,  # 8
-        'a': 0,  # 85
-        'b': 0,  # 81
-        'c': 0,  # 81
-        'd': 0,  # 81
-        'e': 0,  # 42
-        'f': 0,  # 39
-        'g': 0,  # 42
-        'h': 0,  # 37
-        'i': 0,  # 21
-        'j': 0,  # 77
-        'k': 0,  # 47
-        'l': 0,  # 62
-        'm': 0,  # 94
-        'n': 0,  # 36
-        'o': 0,  # 17
-        'p': 0,  # 50
-        'q': 0,  # 3
-        'r': 0,  # 57
+        '1': 8,  # 8
+        'a': 85,  # 85
+        'b': 81,  # 81
+        'c': 81,  # 81
+        'd': 81,  # 81
+        'e': 42,  # 42
+        'f': 39,  # 39
+        'g': 42,  # 42
+        'h': 37,  # 37
+        'i': 21,  # 21
+        'j': 77,  # 77
+        'k': 47,  # 47
+        'l': 62,  # 62
+        'm': 94,  # 94
+        'n': 36,  # 36
+        'o': 17,  # 17
+        'p': 50,  # 50
+        'q': 3,  # 3
+        'r': 57,  # 57
         's': 100,  # 100
-        't': 0,  # 100
-        'u': 0,  # 8
-        'v': 0,  # 18
-        'w': 0,  # 26
-        'x': 0,  # 3
-        'y': 0,  # 13
-        'z': 0  # 8
+        't': 100,  # 100
+        'u': 8,  # 8
+        'v': 18,  # 18
+        'w': 26,  # 26
+        'x': 3,  # 3
+        'y': 19,  # 13
+        'z': 8  # 8
     }
 
     l = ['1', ] + list(ascii_lowercase)
@@ -169,7 +177,7 @@ def main():
     for x in l:
         for y in range(1, pages_dict[x] + 1):
             list_of_url.append(
-                'http://www.metrolyrics.com/artists-{0}-{1}.html'.format(
+                '/artists-{0}-{1}.html'.format(
                     x,
                     y
                 )
