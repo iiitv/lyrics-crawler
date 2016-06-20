@@ -386,7 +386,7 @@ class CrawlerType1(BaseCrawler):
                         e
                     )
                 )
-                task['no_errors'] += 1
+                task['n_errors'] += 1
                 self.task_queue.put(task)
 
     def get_artists(self, thread_id, url):
