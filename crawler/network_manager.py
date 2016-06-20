@@ -1,4 +1,5 @@
 from random import choice, randint
+from sys import stdout
 from time import sleep
 from urllib import request
 
@@ -42,8 +43,14 @@ def open_request(url, delayed=False):
 
 def sleep_for_some_time():
     t = randint(35, 60)
-    sleep(t)
-
+    for i in range(t + 1, 0, -1):
+        stdout.write(
+            'Next hit in {0} seconds.'.format(
+                i
+            )
+        )
+        sleep(1)
+        stdout.write('\r')
 
 def shorten_url(complete_url, start_url):
     return complete_url.replace(
