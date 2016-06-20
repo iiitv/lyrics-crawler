@@ -1,5 +1,6 @@
 from random import shuffle
 from re import findall, DOTALL
+from string import ascii_lowercase
 
 from base_crawler import CrawlerType1
 
@@ -19,10 +20,12 @@ class AZLyricsCrawler(CrawlerType1):
             DOTALL
         )[0]
 
-        return findall(
-            r'<a href=\"(.*?)\">(.*?)<',
-            refined,
-            DOTALL
+        return shuffle(
+            findall(
+                r'<a href=\"(.*?)\">(.*?)<',
+                refined,
+                DOTALL
+            )
         )
 
     def get_albums_with_songs(self, raw_html):
@@ -57,7 +60,7 @@ class AZLyricsCrawler(CrawlerType1):
                 )
             )
 
-        return data
+        return shuffle(data)
 
     def get_song_details(self, song_html):
         return findall(
@@ -77,7 +80,7 @@ class AZLyricsCrawler(CrawlerType1):
 
 
 def main():
-    list_of_initials = ['19', ]  # + list(ascii_lowercase)
+    list_of_initials = ['19', ] + list(ascii_lowercase)
 
     shuffle(list_of_initials)
 
